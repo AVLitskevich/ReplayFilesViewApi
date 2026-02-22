@@ -1,19 +1,16 @@
-using System.Globalization;
 using System.Text.RegularExpressions;
-using Microsoft.Extensions.Options;
 using ReplayFilesViewApi.Models;
 
 namespace ReplayFilesViewApi.Services;
 
 public interface IReplayFileService
 {
-    List<ReplayFileInfo> GetReplays();
-    (bool IsValid, string? FullPath) ValidateAndGetFilePath(string fileName);
+    List<ReplayFileInfo> GetReplays(ProjectSettings project);
+    (bool IsValid, string? FullPath) ValidateAndGetFilePath(ProjectSettings project, string fileName);
 }
 
 public partial class ReplayFileService : IReplayFileService
 {
-    private readonly ReplaySettings _settings;
     private readonly ILogger<ReplayFileService> _logger;
 
     [GeneratedRegex(@"^[a-zA-Z0-9_\-\.]+$")]
@@ -22,31 +19,30 @@ public partial class ReplayFileService : IReplayFileService
     [GeneratedRegex(@"replay_(\d{4})-(\d{2})-(\d{2})_(\d{2})-(\d{2})-(\d{2})")]
     private static partial Regex DateParseRegex();
 
-    public ReplayFileService(IOptions<ReplaySettings> settings, ILogger<ReplayFileService> logger)
+    public ReplayFileService(ILogger<ReplayFileService> logger)
     {
-        _settings = settings.Value;
         _logger = logger;
     }
 
-    public List<ReplayFileInfo> GetReplays()
+    public List<ReplayFileInfo> GetReplays(ProjectSettings project)
     {
         try
         {
-            if (!Directory.Exists(_settings.FolderPath))
+            if (!Directory.Exists(project.ReplayFolderPath))
             {
-                _logger.LogWarning("Replay folder does not exist: {FolderPath}", _settings.FolderPath);
+                _logger.LogWarning("Replay folder does not exist: {FolderPath}", project.ReplayFolderPath);
                 return new List<ReplayFileInfo>();
             }
 
-            var files = Directory.GetFiles(_settings.FolderPath, $"*{_settings.FileExtension}");
+            var files = Directory.GetFiles(project.ReplayFolderPath, $"*{project.FileExtension}");
 
             var replays = files
                 .Select(filePath =>
                 {
                     var fileName = Path.GetFileName(filePath);
                     var fileInfo = new FileInfo(filePath);
-                    var date = ParseDateFromFileName(fileName);
-                    var displayName = CreateDisplayName(fileName, date);
+                    var date = ParseDateFromFileName(project.ReplayFolderPath, fileName);
+                    var displayName = CreateDisplayName(date);
 
                     return new ReplayFileInfo(
                         FileName: fileName,
@@ -62,32 +58,29 @@ public partial class ReplayFileService : IReplayFileService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error reading replay files from {FolderPath}", _settings.FolderPath);
+            _logger.LogError(ex, "Error reading replay files from {FolderPath}", project.ReplayFolderPath);
             return new List<ReplayFileInfo>();
         }
     }
 
-    public (bool IsValid, string? FullPath) ValidateAndGetFilePath(string fileName)
+    public (bool IsValid, string? FullPath) ValidateAndGetFilePath(ProjectSettings project, string fileName)
     {
-        // Валидация имени файла - только безопасные символы
         if (string.IsNullOrWhiteSpace(fileName) || !FileNameValidationRegex().IsMatch(fileName))
         {
             _logger.LogWarning("Invalid file name format: {FileName}", fileName);
             return (false, null);
         }
 
-        // Проверка расширения
-        if (!fileName.EndsWith(_settings.FileExtension, StringComparison.OrdinalIgnoreCase))
+        if (!fileName.EndsWith(project.FileExtension, StringComparison.OrdinalIgnoreCase))
         {
             _logger.LogWarning("Invalid file extension: {FileName}", fileName);
             return (false, null);
         }
 
-        var fullPath = Path.Combine(_settings.FolderPath, fileName);
+        var fullPath = Path.Combine(project.ReplayFolderPath, fileName);
 
-        // Защита от path traversal - проверяем, что файл находится внутри разрешенной папки
         var normalizedFullPath = Path.GetFullPath(fullPath);
-        var normalizedBasePath = Path.GetFullPath(_settings.FolderPath);
+        var normalizedBasePath = Path.GetFullPath(project.ReplayFolderPath);
 
         if (!normalizedFullPath.StartsWith(normalizedBasePath, StringComparison.OrdinalIgnoreCase))
         {
@@ -95,7 +88,6 @@ public partial class ReplayFileService : IReplayFileService
             return (false, null);
         }
 
-        // Проверяем существование файла
         if (!File.Exists(normalizedFullPath))
         {
             _logger.LogWarning("File not found: {FileName}", fileName);
@@ -105,7 +97,7 @@ public partial class ReplayFileService : IReplayFileService
         return (true, normalizedFullPath);
     }
 
-    private DateTime ParseDateFromFileName(string fileName)
+    private DateTime ParseDateFromFileName(string folderPath, string fileName)
     {
         var match = DateParseRegex().Match(fileName);
 
@@ -128,8 +120,7 @@ public partial class ReplayFileService : IReplayFileService
             }
         }
 
-        // Если не удалось распарсить дату из имени, используем дату модификации файла
-        var filePath = Path.Combine(_settings.FolderPath, fileName);
+        var filePath = Path.Combine(folderPath, fileName);
         if (File.Exists(filePath))
         {
             return File.GetLastWriteTimeUtc(filePath);
@@ -138,9 +129,8 @@ public partial class ReplayFileService : IReplayFileService
         return DateTime.UtcNow;
     }
 
-    private string CreateDisplayName(string fileName, DateTime date)
+    private static string CreateDisplayName(DateTime date)
     {
-        // Формат: "Реплей 07.01.2025 14:30:00 UTC"
-        return $"Реплей {date:dd.MM.yyyy HH:mm:ss} UTC";
+        return $"Replay {date:dd.MM.yyyy HH:mm:ss} UTC";
     }
 }

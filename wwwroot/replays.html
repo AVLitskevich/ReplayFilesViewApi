@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Replays</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .back-link {
+            display: inline-block;
+            color: #3498db;
+            text-decoration: none;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 28px;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        #loading {
+            text-align: center;
+            padding: 40px;
+            color: #7f8c8d;
+            font-size: 16px;
+        }
+
+        #error {
+            background-color: #fee;
+            border: 1px solid #fcc;
+            color: #c33;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        #empty-message {
+            text-align: center;
+            padding: 60px 20px;
+            color: #7f8c8d;
+            font-size: 18px;
+            display: none;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            display: none;
+        }
+
+        table.visible {
+            display: table;
+        }
+
+        thead {
+            background-color: #34495e;
+            color: white;
+        }
+
+        th {
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .download-btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .download-btn:hover {
+            background-color: #2980b9;
+        }
+
+        .download-btn:active {
+            background-color: #21618c;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 22px;
+            }
+
+            table {
+                font-size: 14px;
+            }
+
+            th, td {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-link">&larr; Back to projects</a>
+        <h1 id="page-title">Replays</h1>
+
+        <div id="loading">Loading replays...</div>
+        <div id="error"></div>
+        <div id="empty-message">No replays available</div>
+
+        <table id="replays-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Size</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="replays-body">
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        const pathParts = window.location.pathname.split('/').filter(Boolean);
+        const slug = pathParts[0];
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+            return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        async function loadReplays() {
+            if (!slug) {
+                hideLoading();
+                showError('Could not determine project from URL');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/projects/${encodeURIComponent(slug)}/replays`);
+
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        throw new Error('Project not found');
+                    }
+                    throw new Error(`Failed to load: ${response.status} ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                hideLoading();
+
+                if (!data.replays || data.replays.length === 0) {
+                    document.getElementById('empty-message').style.display = 'block';
+                    return;
+                }
+
+                displayReplays(data.replays);
+            } catch (error) {
+                hideLoading();
+                showError('Failed to load replays: ' + error.message);
+                console.error('Error loading replays:', error);
+            }
+        }
+
+        function displayReplays(replays) {
+            const tbody = document.getElementById('replays-body');
+            tbody.innerHTML = '';
+
+            replays.forEach(replay => {
+                const row = document.createElement('tr');
+
+                const nameCell = document.createElement('td');
+                nameCell.textContent = replay.displayName;
+
+                const sizeCell = document.createElement('td');
+                sizeCell.textContent = formatFileSize(replay.sizeBytes);
+
+                const actionCell = document.createElement('td');
+                const downloadLink = document.createElement('a');
+                downloadLink.href = `/api/projects/${encodeURIComponent(slug)}/replays/${encodeURIComponent(replay.fileName)}`;
+                downloadLink.className = 'download-btn';
+                downloadLink.textContent = 'Download';
+                downloadLink.download = replay.fileName;
+
+                actionCell.appendChild(downloadLink);
+
+                row.appendChild(nameCell);
+                row.appendChild(sizeCell);
+                row.appendChild(actionCell);
+
+                tbody.appendChild(row);
+            });
+
+            document.getElementById('replays-table').classList.add('visible');
+        }
+
+        document.addEventListener('DOMContentLoaded', loadReplays);
+    </script>
+</body>
+</html>

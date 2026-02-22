@@ -56,3 +56,6 @@ nunit-*.xml
 # Replay files (test data)
 replays/
 *.replay
+
+# Local docker compose override
+docker-compose.override.yml

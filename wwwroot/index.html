@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Просмотр реплеев</title>
+    <title>Projects</title>
     <style>
         * {
             margin: 0;
@@ -22,10 +22,6 @@
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            background-color: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         h1 {
@@ -34,6 +30,10 @@
             font-size: 28px;
             border-bottom: 3px solid #3498db;
             padding-bottom: 10px;
+            background-color: white;
+            padding: 30px 30px 10px;
+            border-radius: 8px 8px 0 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         #loading {
@@ -61,109 +61,104 @@
             display: none;
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 20px;
             display: none;
         }
 
-        table.visible {
-            display: table;
+        .projects-grid.visible {
+            display: grid;
         }
 
-        thead {
-            background-color: #34495e;
-            color: white;
+        .project-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 24px;
+            transition: box-shadow 0.2s;
         }
 
-        th {
-            padding: 12px;
-            text-align: left;
-            font-weight: 600;
+        .project-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .project-card h2 {
+            color: #2c3e50;
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+
+        .project-card p {
+            color: #7f8c8d;
             font-size: 14px;
+            margin-bottom: 20px;
+            min-height: 44px;
         }
 
-        td {
-            padding: 12px;
-            border-bottom: 1px solid #ecf0f1;
+        .project-actions {
+            display: flex;
+            gap: 10px;
         }
 
-        tbody tr:hover {
-            background-color: #f8f9fa;
-        }
-
-        .download-btn {
-            background-color: #3498db;
-            color: white;
-            border: none;
-            padding: 8px 16px;
+        .btn {
+            padding: 10px 20px;
             border-radius: 4px;
-            cursor: pointer;
             font-size: 14px;
-            transition: background-color 0.2s;
             text-decoration: none;
             display: inline-block;
+            transition: background-color 0.2s;
+            text-align: center;
+            flex: 1;
         }
 
-        .download-btn:hover {
+        .btn-play {
+            background-color: #27ae60;
+            color: white;
+        }
+
+        .btn-play:hover {
+            background-color: #219a52;
+        }
+
+        .btn-replays {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .btn-replays:hover {
             background-color: #2980b9;
         }
 
-        .download-btn:active {
-            background-color: #21618c;
-        }
-
         @media (max-width: 768px) {
-            .container {
-                padding: 15px;
+            body {
+                padding: 10px;
             }
 
             h1 {
                 font-size: 22px;
+                padding: 20px 20px 10px;
             }
 
-            table {
-                font-size: 14px;
-            }
-
-            th, td {
-                padding: 8px;
+            .projects-grid {
+                grid-template-columns: 1fr;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>📼 Просмотр реплеев</h1>
+        <h1>Projects</h1>
 
-        <div id="loading">Загрузка реплеев...</div>
+        <div id="loading">Loading projects...</div>
         <div id="error"></div>
-        <div id="empty-message">Нет доступных реплеев</div>
+        <div id="empty-message">No projects available</div>
 
-        <table id="replays-table">
-            <thead>
-                <tr>
-                    <th>Название</th>
-                    <th>Размер</th>
-                    <th>Действия</th>
-                </tr>
-            </thead>
-            <tbody id="replays-body">
-            </tbody>
-        </table>
+        <div id="projects-grid" class="projects-grid"></div>
     </div>
 
     <script>
-        function formatFileSize(bytes) {
-            if (bytes === 0) return '0 Байт';
-
-            const k = 1024;
-            const sizes = ['Байт', 'КБ', 'МБ', 'ГБ'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-
-            return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
-        }
-
         function showError(message) {
             const errorDiv = document.getElementById('error');
             errorDiv.textContent = message;
@@ -174,72 +169,72 @@
             document.getElementById('loading').style.display = 'none';
         }
 
-        function showEmptyMessage() {
-            document.getElementById('empty-message').style.display = 'block';
-        }
-
-        function showTable() {
-            document.getElementById('replays-table').classList.add('visible');
-        }
-
-        async function loadReplays() {
+        async function loadProjects() {
             try {
-                const response = await fetch('/api/replays');
+                const response = await fetch('/api/projects');
 
                 if (!response.ok) {
-                    throw new Error(`Ошибка загрузки: ${response.status} ${response.statusText}`);
+                    throw new Error(`Failed to load: ${response.status} ${response.statusText}`);
                 }
 
                 const data = await response.json();
                 hideLoading();
 
-                if (!data.replays || data.replays.length === 0) {
-                    showEmptyMessage();
+                if (!data.projects || data.projects.length === 0) {
+                    document.getElementById('empty-message').style.display = 'block';
                     return;
                 }
 
-                displayReplays(data.replays);
+                displayProjects(data.projects);
             } catch (error) {
                 hideLoading();
-                showError('Не удалось загрузить список реплеев: ' + error.message);
-                console.error('Error loading replays:', error);
+                showError('Failed to load projects: ' + error.message);
+                console.error('Error loading projects:', error);
             }
         }
 
-        function displayReplays(replays) {
-            const tbody = document.getElementById('replays-body');
-            tbody.innerHTML = '';
+        function displayProjects(projects) {
+            const grid = document.getElementById('projects-grid');
+            grid.innerHTML = '';
 
-            replays.forEach(replay => {
-                const row = document.createElement('tr');
+            projects.forEach(project => {
+                const card = document.createElement('div');
+                card.className = 'project-card';
 
-                const nameCell = document.createElement('td');
-                nameCell.textContent = replay.displayName;
+                const title = document.createElement('h2');
+                title.textContent = project.name;
 
-                const sizeCell = document.createElement('td');
-                sizeCell.textContent = formatFileSize(replay.sizeBytes);
+                const desc = document.createElement('p');
+                desc.textContent = project.description;
 
-                const actionCell = document.createElement('td');
-                const downloadLink = document.createElement('a');
-                downloadLink.href = `/api/replays/${encodeURIComponent(replay.fileName)}`;
-                downloadLink.className = 'download-btn';
-                downloadLink.textContent = 'Скачать';
-                downloadLink.download = replay.fileName;
+                const actions = document.createElement('div');
+                actions.className = 'project-actions';
 
-                actionCell.appendChild(downloadLink);
+                if (project.webGLUrl) {
+                    const playLink = document.createElement('a');
+                    playLink.href = project.webGLUrl;
+                    playLink.className = 'btn btn-play';
+                    playLink.textContent = 'Play';
+                    playLink.target = '_blank';
+                    actions.appendChild(playLink);
+                }
 
-                row.appendChild(nameCell);
-                row.appendChild(sizeCell);
-                row.appendChild(actionCell);
+                const replaysLink = document.createElement('a');
+                replaysLink.href = `/${encodeURIComponent(project.slug)}/replays`;
+                replaysLink.className = 'btn btn-replays';
+                replaysLink.textContent = 'Replays';
+                actions.appendChild(replaysLink);
 
-                tbody.appendChild(row);
+                card.appendChild(title);
+                card.appendChild(desc);
+                card.appendChild(actions);
+                grid.appendChild(card);
             });
 
-            showTable();
+            grid.classList.add('visible');
         }
 
-        // Загружаем реплеи при загрузке страницы
-        document.addEventListener('DOMContentLoaded', loadReplays);
+        document.addEventListener('DOMContentLoaded', loadProjects);
     </script>
 </body>
 </html>

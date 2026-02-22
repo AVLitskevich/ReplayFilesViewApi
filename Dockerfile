@@ -17,5 +17,7 @@ RUN dotnet publish "./ReplayFilesViewApi.csproj" -c $BUILD_CONFIGURATION -o /app
 
 FROM base AS final
 WORKDIR /app
+RUN adduser --disabled-password --gecos "" appuser
 COPY --from=publish /app/publish .
+USER appuser
 ENTRYPOINT ["dotnet", "ReplayFilesViewApi.dll"]
