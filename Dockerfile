@@ -1,8 +1,13 @@
-﻿FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
 WORKDIR /app
 EXPOSE 8080
 
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    clang \
+    zlib1g-dev \
+    && rm -rf /var/lib/apt/lists/*
+
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["ReplayFilesViewApi.csproj", "./"]
