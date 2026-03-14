@@ -31,9 +31,5 @@ jobs:
           password: ${{ secrets.REMOTE_PASSWORD }}
           script: |
             mkdir -p ~/replay-data/replays
-            if [ ! -f ~/replay-data/appsettings.json ]; then
-              cp ~/replay-viewer/appsettings.json ~/replay-data/appsettings.json
-              echo "Created initial appsettings.json in ~/replay-data/"
-            fi
             cd ~/replay-viewer
-            docker compose up -d --build
+            docker compose up -d --build --force-recreate

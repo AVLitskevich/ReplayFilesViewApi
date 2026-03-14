@@ -7,4 +7,3 @@ services:
       - "8080:8080"
     volumes:
       - ~/replay-data/replays:/app/replays
-      - ~/replay-data/appsettings.json:/app/appsettings.json:ro
