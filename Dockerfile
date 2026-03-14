@@ -25,4 +25,4 @@ WORKDIR /app
 RUN adduser --disabled-password --gecos "" appuser
 COPY --from=publish /app/publish .
 USER appuser
-ENTRYPOINT ["dotnet", "ReplayFilesViewApi.dll"]
+ENTRYPOINT ["./ReplayFilesViewApi"]
