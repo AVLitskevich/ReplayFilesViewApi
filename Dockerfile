@@ -3,11 +3,6 @@ WORKDIR /app
 EXPOSE 8080
 
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    clang \
-    zlib1g-dev \
-    && rm -rf /var/lib/apt/lists/*
-
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["ReplayFilesViewApi.csproj", "./"]
@@ -18,11 +13,11 @@ RUN dotnet build "./ReplayFilesViewApi.csproj" -c $BUILD_CONFIGURATION -o /app/b
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./ReplayFilesViewApi.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./ReplayFilesViewApi.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false /p:PublishAot=false
 
 FROM base AS final
 WORKDIR /app
 RUN adduser --disabled-password --gecos "" appuser
 COPY --from=publish /app/publish .
 USER appuser
-ENTRYPOINT ["./ReplayFilesViewApi"]
+ENTRYPOINT ["dotnet", "ReplayFilesViewApi.dll"]
