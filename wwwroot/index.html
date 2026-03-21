@@ -221,10 +221,9 @@
 
                 if (project.webGLUrl) {
                     const playLink = document.createElement('a');
-                    playLink.href = project.webGLUrl;
+                    playLink.href = `/${encodeURIComponent(project.slug)}/play`;
                     playLink.className = 'btn btn-play';
                     playLink.textContent = 'Play';
-                    playLink.target = '_blank';
                     actions.appendChild(playLink);
                 }
 

@@ -55,6 +55,15 @@ api.MapGet("/projects", (IProjectService projectService) =>
     return Results.Ok(new ProjectListResponse(projects));
 }).WithName("GetProjects");
 
+// GET /api/projects/{slug} - get single project
+api.MapGet("/projects/{slug}", (string slug, IProjectService projectService) =>
+{
+    var project = projectService.GetBySlug(slug);
+    if (project == null) return Results.NotFound();
+
+    return Results.Ok(new ProjectInfo(project.Slug, project.Name, project.Description, project.WebGLUrl, string.IsNullOrEmpty(project.ReplayViewerUrl) ? null : project.ReplayViewerUrl));
+}).WithName("GetProject");
+
 // GET /api/projects/{slug}/replays - list project replays
 api.MapGet("/projects/{slug}/replays", (string slug, IProjectService projectService, IReplayFileService replayService) =>
 {
@@ -86,6 +95,15 @@ app.MapGet("/{slug}/replays", (string slug, IProjectService projectService) =>
 
     return Results.File("replays.html", "text/html");
 }).WithName("ProjectReplaysPage");
+
+// HTML play page: /{slug}/play
+app.MapGet("/{slug}/play", (string slug, IProjectService projectService) =>
+{
+    var project = projectService.GetBySlug(slug);
+    if (project == null) return Results.NotFound();
+
+    return Results.File("play.html", "text/html");
+}).WithName("ProjectPlayPage");
 
 app.Run();
 

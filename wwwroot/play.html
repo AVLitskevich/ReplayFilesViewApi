@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Play</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+            background-color: #1a1a2e;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        header {
+            background-color: #2c3e50;
+            padding: 0 20px;
+            height: 52px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+        }
+
+        .back-link {
+            color: #bdc3c7;
+            text-decoration: none;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        .back-link:hover {
+            color: white;
+        }
+
+        .back-link::before {
+            content: '←';
+        }
+
+        .divider {
+            width: 1px;
+            height: 24px;
+            background-color: #4a5568;
+            flex-shrink: 0;
+        }
+
+        #project-name {
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        #game-frame {
+            flex: 1;
+            width: 100%;
+            border: none;
+            display: none;
+        }
+
+        #game-frame.visible {
+            display: block;
+        }
+
+        #loading {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #7f8c8d;
+            font-size: 16px;
+        }
+
+        #error {
+            flex: 1;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 16px;
+            color: #e74c3c;
+        }
+
+        #error a {
+            color: #3498db;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        #error a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="/" class="back-link">Back to projects</a>
+        <div class="divider"></div>
+        <span id="project-name">Loading...</span>
+    </header>
+
+    <div id="loading">Loading game...</div>
+    <div id="error">
+        <span id="error-message">Failed to load game</span>
+        <a href="/">← Back to projects</a>
+    </div>
+    <iframe id="game-frame"
+        allow="fullscreen; pointer-lock"
+        allowfullscreen>
+    </iframe>
+
+    <script>
+        const pathParts = window.location.pathname.split('/').filter(Boolean);
+        const slug = pathParts[0];
+
+        async function loadGame() {
+            if (!slug) {
+                showError('Could not determine project from URL');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/projects/${encodeURIComponent(slug)}`);
+
+                if (!response.ok) {
+                    if (response.status === 404) throw new Error('Project not found');
+                    throw new Error(`Failed to load: ${response.status} ${response.statusText}`);
+                }
+
+                const project = await response.json();
+
+                document.title = project.name;
+                document.getElementById('project-name').textContent = project.name;
+
+                if (!project.webGLUrl) {
+                    showError('No game URL configured for this project');
+                    return;
+                }
+
+                const frame = document.getElementById('game-frame');
+                frame.src = project.webGLUrl;
+                document.getElementById('loading').style.display = 'none';
+                frame.classList.add('visible');
+            } catch (error) {
+                showError(error.message);
+                console.error('Error loading game:', error);
+            }
+        }
+
+        function showError(message) {
+            document.getElementById('loading').style.display = 'none';
+            const errorDiv = document.getElementById('error');
+            document.getElementById('error-message').textContent = message;
+            errorDiv.style.display = 'flex';
+        }
+
+        document.addEventListener('DOMContentLoaded', loadGame);
+    </script>
+</body>
+</html>

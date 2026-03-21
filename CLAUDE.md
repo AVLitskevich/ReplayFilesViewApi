@@ -40,8 +40,10 @@ appsettings.Development.json        — Local dev config with test projects (pix
 | Method | Route | Returns |
 |--------|-------|---------|
 | GET | `/api/projects` | `ProjectListResponse` — list of all projects |
+| GET | `/api/projects/{slug}` | `ProjectInfo` — single project |
 | GET | `/api/projects/{slug}/replays` | `ReplayListResponse` — replay files for a project |
 | GET | `/api/projects/{slug}/replays/{fileName}` | Binary file download (`application/octet-stream`) |
+| GET | `/{slug}/play` | Serves `play.html` — WebGL game embedded in iframe with site header |
 | GET | `/{slug}/replays` | Serves `replays.html` (the HTML page, not API) |
 | GET | `/` | Serves `index.html` via static file middleware |
 
@@ -84,7 +86,8 @@ Projects are configured in `appsettings.json` under the `"Projects"` array:
 
 Both HTML pages are vanilla JS with no dependencies:
 
-- `index.html`: fetches `/api/projects`, renders a CSS grid of project cards. Each card has "Play" (links to `WebGLUrl`, opens in new tab), "Viewer" (links to `ReplayViewerUrl`, opens in new tab, shown only if not null), and "Replays" (links to `/{slug}/replays`) buttons.
+- `index.html`: fetches `/api/projects`, renders a CSS grid of project cards. Each card has "Play" (links to `/{slug}/play`), "Viewer" (links to `ReplayViewerUrl`, opens in new tab, shown only if not null), and "Replays" (links to `/{slug}/replays`) buttons.
+- `play.html`: fetches `/api/projects/{slug}`, sets iframe `src` to `webGLUrl`. Has a dark header with back link and project name. Uses `allow="fullscreen; pointer-lock"` on the iframe for WebGL compatibility.
 - `replays.html`: extracts slug from URL path (`window.location.pathname.split('/')[1]`), fetches `/api/projects/{slug}/replays`, renders a table with download links pointing to `/api/projects/{slug}/replays/{fileName}`.
 
 **Important**: `Results.File("replays.html", "text/html")` resolves paths relative to `wwwroot/`. Do NOT prepend `wwwroot/` — that would look for `wwwroot/wwwroot/replays.html`.
