@@ -229,10 +229,9 @@
 
                 if (project.replayViewerUrl) {
                     const viewerLink = document.createElement('a');
-                    viewerLink.href = project.replayViewerUrl;
+                    viewerLink.href = `/${encodeURIComponent(project.slug)}/viewer`;
                     viewerLink.className = 'btn btn-viewer';
                     viewerLink.textContent = 'Viewer';
-                    viewerLink.target = '_blank';
                     actions.appendChild(viewerLink);
                 }
 

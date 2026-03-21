@@ -105,6 +105,15 @@ app.MapGet("/{slug}/play", (string slug, IProjectService projectService) =>
     return Results.File("play.html", "text/html");
 }).WithName("ProjectPlayPage");
 
+// HTML viewer page: /{slug}/viewer
+app.MapGet("/{slug}/viewer", (string slug, IProjectService projectService) =>
+{
+    var project = projectService.GetBySlug(slug);
+    if (project == null) return Results.NotFound();
+
+    return Results.File("viewer.html", "text/html");
+}).WithName("ProjectViewerPage");
+
 app.Run();
 
 [JsonSerializable(typeof(ProjectListResponse))]
