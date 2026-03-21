@@ -50,7 +50,7 @@ var api = app.MapGroup("/api");
 api.MapGet("/projects", (IProjectService projectService) =>
 {
     var projects = projectService.GetAll()
-        .Select(p => new ProjectInfo(p.Slug, p.Name, p.Description, p.WebGLUrl))
+        .Select(p => new ProjectInfo(p.Slug, p.Name, p.Description, p.WebGLUrl, string.IsNullOrEmpty(p.ReplayViewerUrl) ? null : p.ReplayViewerUrl))
         .ToList();
     return Results.Ok(new ProjectListResponse(projects));
 }).WithName("GetProjects");

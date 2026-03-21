@@ -65,7 +65,8 @@ Projects are configured in `appsettings.json` under the `"Projects"` array:
 ```
 
 - `Slug` — URL identifier, used in routes like `/{slug}/replays`
-- `WebGLUrl` — link to externally hosted WebGL build (served by nginx, not this app)
+- `WebGLUrl` — link to externally hosted WebGL game build (served by nginx, not this app)
+- `ReplayViewerUrl` — optional link to externally hosted WebGL replay viewer build; if omitted, the "Viewer" button is not shown
 - `ReplayFolderPath` — absolute path to the folder containing replay files on the host
 - `FileExtension` — file extension filter (e.g. `.replay`)
 
@@ -83,7 +84,7 @@ Projects are configured in `appsettings.json` under the `"Projects"` array:
 
 Both HTML pages are vanilla JS with no dependencies:
 
-- `index.html`: fetches `/api/projects`, renders a CSS grid of project cards. Each card has "Play" (links to `WebGLUrl`, opens in new tab) and "Replays" (links to `/{slug}/replays`) buttons.
+- `index.html`: fetches `/api/projects`, renders a CSS grid of project cards. Each card has "Play" (links to `WebGLUrl`, opens in new tab), "Viewer" (links to `ReplayViewerUrl`, opens in new tab, shown only if not null), and "Replays" (links to `/{slug}/replays`) buttons.
 - `replays.html`: extracts slug from URL path (`window.location.pathname.split('/')[1]`), fetches `/api/projects/{slug}/replays`, renders a table with download links pointing to `/api/projects/{slug}/replays/{fileName}`.
 
 **Important**: `Results.File("replays.html", "text/html")` resolves paths relative to `wwwroot/`. Do NOT prepend `wwwroot/` — that would look for `wwwroot/wwwroot/replays.html`.

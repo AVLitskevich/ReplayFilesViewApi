@@ -131,6 +131,15 @@
             background-color: #2980b9;
         }
 
+        .btn-viewer {
+            background-color: #8e44ad;
+            color: white;
+        }
+
+        .btn-viewer:hover {
+            background-color: #7d3c98;
+        }
+
         @media (max-width: 768px) {
             body {
                 padding: 10px;
@@ -217,6 +226,15 @@
                     playLink.textContent = 'Play';
                     playLink.target = '_blank';
                     actions.appendChild(playLink);
+                }
+
+                if (project.replayViewerUrl) {
+                    const viewerLink = document.createElement('a');
+                    viewerLink.href = project.replayViewerUrl;
+                    viewerLink.className = 'btn btn-viewer';
+                    viewerLink.textContent = 'Viewer';
+                    viewerLink.target = '_blank';
+                    actions.appendChild(viewerLink);
                 }
 
                 const replaysLink = document.createElement('a');
