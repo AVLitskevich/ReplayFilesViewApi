@@ -128,6 +128,16 @@
         const pathParts = window.location.pathname.split('/').filter(Boolean);
         const slug = pathParts[0];
 
+        async function getBuildVersion(url) {
+            try {
+                const resp = await fetch(url, { method: 'HEAD' });
+                const version = resp.headers.get('Last-Modified') || resp.headers.get('ETag');
+                return '?v=' + encodeURIComponent(version || Date.now());
+            } catch {
+                return '?v=' + Date.now();
+            }
+        }
+
         async function loadViewer() {
             if (!slug) {
                 showError('Could not determine project from URL');
@@ -153,7 +163,7 @@
                 }
 
                 const frame = document.getElementById('viewer-frame');
-                frame.src = project.replayViewerUrl;
+                frame.src = project.replayViewerUrl + await getBuildVersion(project.replayViewerUrl);
                 document.getElementById('loading').style.display = 'none';
                 frame.classList.add('visible');
             } catch (error) {
