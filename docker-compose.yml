@@ -7,4 +7,4 @@ services:
       - "8080:8080"
     volumes:
       - ~/replay-data/replays:/app/replays
-      - /home/skillcade/fakemario/build/fakeMario-server_Data/StreamingAssets:/app/replays/fakemario:ro
+      - /home/skillcade:/app/gamedata:ro
