@@ -1,10 +1,24 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Replays</title>
+    <title>Replays — Replay Hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --primary: #6366f1;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-blue: #3b82f6;
+            --radius: 12px;
+            --transition: all 0.2s ease;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -12,158 +26,179 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background-color: #f5f5f5;
-            padding: 20px;
+            font-family: 'Inter', -apple-system, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            line-height: 1.5;
+            min-height: 100vh;
+            padding: 2rem 1rem;
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1000px;
             margin: 0 auto;
-            background-color: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            background-color: var(--bg-card);
+            padding: 2.5rem;
+            border-radius: var(--radius);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
 
         .back-link {
-            display: inline-block;
-            color: #3498db;
+            display: inline-flex;
+            align-items: center;
+            color: var(--primary);
             text-decoration: none;
-            margin-bottom: 20px;
-            font-size: 14px;
+            margin-bottom: 2rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: var(--transition);
         }
 
         .back-link:hover {
-            text-decoration: underline;
+            color: #818cf8;
+            transform: translateX(-4px);
         }
 
         h1 {
-            color: #2c3e50;
-            margin-bottom: 30px;
-            font-size: 28px;
-            border-bottom: 3px solid #3498db;
-            padding-bottom: 10px;
+            font-size: 1.875rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            letter-spacing: -0.025em;
         }
 
-        #loading {
+        #loading, #empty-message {
             text-align: center;
-            padding: 40px;
-            color: #7f8c8d;
-            font-size: 16px;
+            padding: 4rem 0;
+            color: var(--text-muted);
+        }
+
+        .spinner {
+            width: 32px;
+            height: 32px;
+            border: 2px solid rgba(99, 102, 241, 0.1);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
 
         #error {
-            background-color: #fee;
-            border: 1px solid #fcc;
-            color: #c33;
-            padding: 15px;
-            border-radius: 4px;
-            margin-bottom: 20px;
+            background-color: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
             display: none;
         }
 
-        #empty-message {
-            text-align: center;
-            padding: 60px 20px;
-            color: #7f8c8d;
-            font-size: 18px;
+        .table-container {
+            overflow-x: auto;
             display: none;
+        }
+
+        .table-container.visible {
+            display: block;
         }
 
         table {
             width: 100%;
-            border-collapse: collapse;
-            display: none;
-        }
-
-        table.visible {
-            display: table;
-        }
-
-        thead {
-            background-color: #34495e;
-            color: white;
+            border-collapse: separate;
+            border-spacing: 0;
         }
 
         th {
-            padding: 12px;
+            padding: 1rem;
             text-align: left;
             font-weight: 600;
-            font-size: 14px;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         td {
-            padding: 12px;
-            border-bottom: 1px solid #ecf0f1;
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.9375rem;
         }
 
-        tbody tr:hover {
-            background-color: #f8f9fa;
+        tbody tr:hover td {
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+
+        .file-name {
+            font-weight: 500;
+            color: var(--text-main);
+        }
+
+        .file-size {
+            color: var(--text-muted);
+            font-family: monospace;
         }
 
         .download-btn {
-            background-color: #3498db;
+            background-color: var(--primary);
             color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: background-color 0.2s;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.8125rem;
+            font-weight: 500;
             text-decoration: none;
-            display: inline-block;
+            display: inline-flex;
+            transition: var(--transition);
         }
 
         .download-btn:hover {
-            background-color: #2980b9;
+            background-color: var(--primary-hover);
+            filter: brightness(1.1);
+            transform: translateY(-1px);
         }
 
-        .download-btn:active {
-            background-color: #21618c;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 15px;
-            }
-
-            h1 {
-                font-size: 22px;
-            }
-
-            table {
-                font-size: 14px;
-            }
-
-            th, td {
-                padding: 8px;
-            }
+        @media (max-width: 640px) {
+            .container { padding: 1.5rem; }
+            h1 { font-size: 1.5rem; }
+            td, th { padding: 0.75rem; }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <a href="/" class="back-link">&larr; Back to projects</a>
+        <a href="/" class="back-link">
+            <svg style="width: 1.25rem; height: 1.25rem; margin-right: 0.5rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Back to projects
+        </a>
         <h1 id="page-title">Replays</h1>
 
-        <div id="loading">Loading replays...</div>
+        <div id="loading">
+            <div class="spinner"></div>
+            <p>Fetching replay files...</p>
+        </div>
+        
         <div id="error"></div>
-        <div id="empty-message">No replays available</div>
+        <div id="empty-message" style="display: none;">No replays found for this project</div>
 
-        <table id="replays-table">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Size</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody id="replays-body">
-            </tbody>
-        </table>
+        <div id="table-container" class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>File Name</th>
+                        <th>Size</th>
+                        <th style="text-align: right;">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="replays-body">
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <script>
@@ -171,13 +206,11 @@
         const slug = pathParts[0];
 
         function formatFileSize(bytes) {
-            if (bytes === 0) return '0 Bytes';
-
+            if (bytes === 0) return '0 B';
             const k = 1024;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const sizes = ['B', 'KB', 'MB', 'GB'];
             const i = Math.floor(Math.log(bytes) / Math.log(k));
-
-            return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
         }
 
         function showError(message) {
@@ -193,7 +226,7 @@
         async function loadReplays() {
             if (!slug) {
                 hideLoading();
-                showError('Could not determine project from URL');
+                showError('Unidentified project context');
                 return;
             }
 
@@ -201,10 +234,8 @@
                 const response = await fetch(`/api/projects/${encodeURIComponent(slug)}/replays`);
 
                 if (!response.ok) {
-                    if (response.status === 404) {
-                        throw new Error('Project not found');
-                    }
-                    throw new Error(`Failed to load: ${response.status} ${response.statusText}`);
+                    if (response.status === 404) throw new Error('Project repository not found');
+                    throw new Error(`Sync failed (${response.status})`);
                 }
 
                 const data = await response.json();
@@ -218,8 +249,8 @@
                 displayReplays(data.replays);
             } catch (error) {
                 hideLoading();
-                showError('Failed to load replays: ' + error.message);
-                console.error('Error loading replays:', error);
+                showError(error.message);
+                console.error('Data Fetch Error:', error);
             }
         }
 
@@ -231,12 +262,16 @@
                 const row = document.createElement('tr');
 
                 const nameCell = document.createElement('td');
+                nameCell.className = 'file-name';
                 nameCell.textContent = replay.displayName;
 
                 const sizeCell = document.createElement('td');
+                sizeCell.className = 'file-size';
                 sizeCell.textContent = formatFileSize(replay.sizeBytes);
 
                 const actionCell = document.createElement('td');
+                actionCell.style.textAlign = 'right';
+                
                 const downloadLink = document.createElement('a');
                 downloadLink.href = `/api/projects/${encodeURIComponent(slug)}/replays/${encodeURIComponent(replay.fileName)}`;
                 downloadLink.className = 'download-btn';
@@ -244,7 +279,6 @@
                 downloadLink.download = replay.fileName;
 
                 actionCell.appendChild(downloadLink);
-
                 row.appendChild(nameCell);
                 row.appendChild(sizeCell);
                 row.appendChild(actionCell);
@@ -252,7 +286,7 @@
                 tbody.appendChild(row);
             });
 
-            document.getElementById('replays-table').classList.add('visible');
+            document.getElementById('table-container').classList.add('visible');
         }
 
         document.addEventListener('DOMContentLoaded', loadReplays);
