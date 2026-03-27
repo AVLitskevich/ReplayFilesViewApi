@@ -1,10 +1,28 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Projects</title>
+    <title>Projects Dashboard — Replay Hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --bg-card-hover: #334155;
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-green: #22c55e;
+            --accent-purple: #a855f7;
+            --accent-blue: #3b82f6;
+            --radius: 12px;
+            --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -12,11 +30,12 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background-color: #f5f5f5;
-            padding: 20px;
+            font-family: 'Inter', -apple-system, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            line-height: 1.5;
+            min-height: 100vh;
+            padding: 2rem 1rem;
         }
 
         .container {
@@ -24,47 +43,67 @@
             margin: 0 auto;
         }
 
+        header {
+            margin-bottom: 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
         h1 {
-            color: #2c3e50;
-            margin-bottom: 30px;
-            font-size: 28px;
-            border-bottom: 3px solid #3498db;
-            padding-bottom: 10px;
-            background-color: white;
-            padding: 30px 30px 10px;
-            border-radius: 8px 8px 0 0;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+            background: linear-gradient(to right, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         #loading {
-            text-align: center;
-            padding: 40px;
-            color: #7f8c8d;
-            font-size: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 5rem 0;
+            color: var(--text-muted);
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(99, 102, 241, 0.1);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
 
         #error {
-            background-color: #fee;
-            border: 1px solid #fcc;
-            color: #c33;
-            padding: 15px;
-            border-radius: 4px;
-            margin-bottom: 20px;
+            background-color: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            padding: 1rem;
+            border-radius: var(--radius);
+            margin-bottom: 2rem;
             display: none;
         }
 
         #empty-message {
             text-align: center;
-            padding: 60px 20px;
-            color: #7f8c8d;
-            font-size: 18px;
+            padding: 5rem 0;
+            color: var(--text-muted);
+            font-size: 1.125rem;
             display: none;
         }
 
         .projects-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
             display: none;
         }
 
@@ -73,96 +112,107 @@
         }
 
         .project-card {
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            padding: 24px;
-            transition: box-shadow 0.2s;
+            background-color: var(--bg-card);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: var(--radius);
+            padding: 1.75rem;
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
 
         .project-card:hover {
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transform: translateY(-4px);
+            background-color: var(--bg-card-hover);
+            border-color: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
         }
 
         .project-card h2 {
-            color: #2c3e50;
-            font-size: 20px;
-            margin-bottom: 8px;
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: var(--text-main);
         }
 
         .project-card p {
-            color: #7f8c8d;
-            font-size: 14px;
-            margin-bottom: 20px;
-            min-height: 44px;
+            color: var(--text-muted);
+            font-size: 0.9375rem;
+            margin-bottom: 2rem;
+            flex-grow: 1;
+            line-height: 1.6;
         }
 
         .project-actions {
-            display: flex;
-            gap: 10px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 0.75rem;
         }
 
         .btn {
-            padding: 10px 20px;
-            border-radius: 4px;
-            font-size: 14px;
+            padding: 0.625rem 1rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
             text-decoration: none;
-            display: inline-block;
-            transition: background-color 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
             text-align: center;
-            flex: 1;
         }
 
         .btn-play {
-            background-color: #27ae60;
-            color: white;
+            background-color: var(--accent-green);
+            color: #064e3b;
         }
 
         .btn-play:hover {
-            background-color: #219a52;
+            background-color: #16a34a;
+            transform: scale(1.02);
         }
 
         .btn-replays {
-            background-color: #3498db;
-            color: white;
+            background-color: var(--accent-blue);
+            color: #eff6ff;
         }
 
         .btn-replays:hover {
-            background-color: #2980b9;
+            background-color: #2563eb;
+            transform: scale(1.02);
         }
 
         .btn-viewer {
-            background-color: #8e44ad;
-            color: white;
+            background-color: var(--accent-purple);
+            color: #faf5ff;
         }
 
         .btn-viewer:hover {
-            background-color: #7d3c98;
+            background-color: #9333ea;
+            transform: scale(1.02);
         }
 
-        @media (max-width: 768px) {
-            body {
-                padding: 10px;
-            }
-
-            h1 {
-                font-size: 22px;
-                padding: 20px 20px 10px;
-            }
-
-            .projects-grid {
-                grid-template-columns: 1fr;
-            }
+        @media (max-width: 640px) {
+            h1 { font-size: 1.5rem; }
+            .projects-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Projects</h1>
+        <header>
+            <h1>Replay Hub</h1>
+        </header>
 
-        <div id="loading">Loading projects...</div>
         <div id="error"></div>
-        <div id="empty-message">No projects available</div>
+
+        <div id="loading">
+            <div class="spinner"></div>
+            <p>Scanning projects...</p>
+        </div>
+
+        <div id="empty-message">No projects found in the workspace</div>
 
         <div id="projects-grid" class="projects-grid"></div>
     </div>
@@ -183,7 +233,7 @@
                 const response = await fetch('/api/projects');
 
                 if (!response.ok) {
-                    throw new Error(`Failed to load: ${response.status} ${response.statusText}`);
+                    throw new Error(`Connection error: ${response.status}`);
                 }
 
                 const data = await response.json();
@@ -197,8 +247,8 @@
                 displayProjects(data.projects);
             } catch (error) {
                 hideLoading();
-                showError('Failed to load projects: ' + error.message);
-                console.error('Error loading projects:', error);
+                showError('Failed to synchronize: ' + error.message);
+                console.error('API Error:', error);
             }
         }
 
@@ -214,7 +264,7 @@
                 title.textContent = project.name;
 
                 const desc = document.createElement('p');
-                desc.textContent = project.description;
+                desc.textContent = project.description || 'No description provided for this project.';
 
                 const actions = document.createElement('div');
                 actions.className = 'project-actions';
@@ -223,7 +273,7 @@
                     const playLink = document.createElement('a');
                     playLink.href = `/${encodeURIComponent(project.slug)}/play`;
                     playLink.className = 'btn btn-play';
-                    playLink.textContent = 'Play';
+                    playLink.textContent = 'Launch';
                     actions.appendChild(playLink);
                 }
 
