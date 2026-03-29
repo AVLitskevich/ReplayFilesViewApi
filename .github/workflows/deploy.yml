@@ -4,11 +4,20 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        type: choice
+        options:
+          - rariaden-hub
+          - skillcade-london
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: production
+    environment: ${{ inputs.environment || 'rariaden-hub' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -30,6 +39,11 @@ jobs:
           username: ${{ secrets.REMOTE_USER }}
           password: ${{ secrets.REMOTE_PASSWORD }}
           script: |
-            mkdir -p ~/replay-data/replays
+            echo "ROOT_PATH=${{ secrets.ROOT_PATH }}" > ~/replay-viewer/.env
+            mkdir -p ${{ secrets.ROOT_PATH }}/replay-data
+            if [ ! -f ${{ secrets.ROOT_PATH }}/replay-data/appsettings.json ]; then
+              cp ~/replay-viewer/appsettings.json ${{ secrets.ROOT_PATH }}/replay-data/appsettings.json
+              echo "Created initial appsettings.json in ${{ secrets.ROOT_PATH }}/replay-data/"
+            fi
             cd ~/replay-viewer
             docker compose up -d --build --force-recreate

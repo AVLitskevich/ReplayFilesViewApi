@@ -11,18 +11,18 @@ public interface IProjectService
 
 public class ProjectService : IProjectService
 {
-    private readonly List<ProjectSettings> _projects;
+    private readonly IOptionsMonitor<List<ProjectSettings>> _monitor;
 
-    public ProjectService(IOptions<List<ProjectSettings>> projects)
+    public ProjectService(IOptionsMonitor<List<ProjectSettings>> monitor)
     {
-        _projects = projects.Value;
+        _monitor = monitor;
     }
 
-    public List<ProjectSettings> GetAll() => _projects;
+    public List<ProjectSettings> GetAll() => _monitor.CurrentValue;
 
     public ProjectSettings? GetBySlug(string slug)
     {
-        return _projects.FirstOrDefault(p =>
+        return _monitor.CurrentValue.FirstOrDefault(p =>
             string.Equals(p.Slug, slug, StringComparison.OrdinalIgnoreCase));
     }
 }

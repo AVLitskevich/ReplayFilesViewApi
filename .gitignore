@@ -59,3 +59,6 @@ replays/
 
 # Local docker compose override
 docker-compose.override.yml
+
+# Docker Compose env file (generated on server during deploy)
+.env

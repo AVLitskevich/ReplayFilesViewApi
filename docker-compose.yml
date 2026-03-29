@@ -6,5 +6,5 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - ~/replay-data/replays:/app/replays
-      - /home/skillcade:/app/gamedata:ro
+      - ${ROOT_PATH}/replay-data/appsettings.json:/app/appsettings.json:ro
+      - ${ROOT_PATH}:/app/gamedata:ro
