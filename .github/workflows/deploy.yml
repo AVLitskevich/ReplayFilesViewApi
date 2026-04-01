@@ -22,6 +22,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Verify Secrets
+        run: |
+          if [ -z "${{ secrets.DEPLOY_PATH }}" ]; then
+            echo "Error: DEPLOY_PATH secret is not set!"
+            exit 1
+          fi
+          if [ -z "${{ secrets.ROOT_PATH }}" ]; then
+            echo "Error: ROOT_PATH secret is not set!"
+            exit 1
+          fi
+
       - name: Copy files via SCP
         uses: appleboy/scp-action@v0.1.4
         with:
@@ -30,7 +41,7 @@ jobs:
           password: ${{ secrets.REMOTE_PASSWORD }}
           source: "."
           target: ${{ secrets.DEPLOY_PATH }}
-          rm: true
+          rm: false # Handle cleanup in SSH for better control
 
       - name: Deploy to Server via SSH
         uses: appleboy/ssh-action@v0.1.10
@@ -43,6 +54,7 @@ jobs:
             DATA_DIR=${{ secrets.ROOT_PATH }}/replay-data
             
             # Setup environment
+            mkdir -p $TARGET_DIR
             echo "ROOT_PATH=${{ secrets.ROOT_PATH }}" > $TARGET_DIR/.env
             mkdir -p $DATA_DIR
             
