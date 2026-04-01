@@ -1,17 +1,44 @@
+using System.Security.Claims;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using ReplayFilesViewApi.Models;
 using ReplayFilesViewApi.Services;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
 // Configure project settings
-builder.Services.Configure<List<ProjectSettings>>(
-    builder.Configuration.GetSection("Projects"));
+builder.Services.Configure<AdminSettings>(
+    builder.Configuration.GetSection("AdminSettings"));
 
 // Register services
 builder.Services.AddSingleton<IProjectService, ProjectService>();
 builder.Services.AddSingleton<IReplayFileService, ReplayFileService>();
+builder.Services.AddSingleton<IAuthService, AuthService>();
+builder.Services.AddSingleton<ISystemService, SystemService>();
+
+// Authentication
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/login.html";
+        options.LogoutPath = "/api/admin/logout";
+        options.ExpireTimeSpan = TimeSpan.FromDays(7);
+        options.Events.OnRedirectToLogin = context =>
+        {
+            if (context.Request.Path.StartsWithSegments("/api"))
+            {
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            }
+            else
+            {
+                context.Response.Redirect(context.RedirectUri);
+            }
+            return Task.CompletedTask;
+        };
+    });
+builder.Services.AddAuthorization();
 
 // Rate limiting: 30 requests per minute per IP
 builder.Services.AddRateLimiter(options =>
@@ -32,6 +59,7 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 {
     options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default);
     options.SerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
 
 var app = builder.Build();
@@ -42,6 +70,9 @@ app.UseRateLimiter();
 // Static files
 app.UseDefaultFiles();
 app.UseStaticFiles();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 // API endpoints
 var api = app.MapGroup("/api");
@@ -114,7 +145,100 @@ app.MapGet("/{slug}/viewer", (string slug, IProjectService projectService) =>
     return Results.File("viewer.html", "text/html");
 }).WithName("ProjectViewerPage");
 
+// Admin API endpoints
+var adminApi = app.MapGroup("/api/admin").RequireAuthorization();
+
+// Login (Public)
+app.MapPost("/api/admin/login", async (LoginRequest request, IAuthService authService, Microsoft.Extensions.Options.IOptions<AdminSettings> adminSettings, HttpContext httpContext) =>
+{
+    if (authService.VerifyPassword(request.Password, adminSettings.Value) && 
+        string.Equals(request.Username, adminSettings.Value.Username, StringComparison.OrdinalIgnoreCase))
+    {
+        var claims = new List<Claim> { new Claim(ClaimTypes.Name, request.Username) };
+        var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+        await httpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
+        return Results.Ok();
+    }
+    return Results.Unauthorized();
+}).AllowAnonymous();
+
+// Logout
+adminApi.MapPost("/logout", async (HttpContext httpContext) =>
+{
+    await httpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+    return Results.Ok();
+});
+
+// GET /api/admin/projects - list all projects (including config)
+adminApi.MapGet("/projects", (IProjectService projectService) =>
+{
+    return Results.Ok(projectService.GetAll());
+});
+
+// POST /api/admin/projects - create new project
+adminApi.MapPost("/projects", (ProjectSettings project, IProjectService projectService) =>
+{
+    try {
+        projectService.AddProject(project);
+        return Results.Created($"/api/projects/{project.Slug}", project);
+    } catch (Exception ex) {
+        return Results.BadRequest(ex.Message);
+    }
+});
+
+// PUT /api/admin/projects/{slug} - update project
+adminApi.MapPut("/projects/{slug}", (string slug, ProjectSettings project, IProjectService projectService) =>
+{
+    try {
+        if (!slug.Equals(project.Slug, StringComparison.OrdinalIgnoreCase))
+            return Results.BadRequest("Slug mismatch.");
+        projectService.UpdateProject(project);
+        return Results.Ok(project);
+    } catch (Exception ex) {
+        return Results.NotFound(ex.Message);
+    }
+});
+
+// DELETE /api/admin/projects/{slug} - delete project
+adminApi.MapDelete("/projects/{slug}", (string slug, IProjectService projectService) =>
+{
+    projectService.DeleteProject(slug);
+    return Results.NoContent();
+});
+
+// POST /api/admin/projects/{slug}/restart - restart game server
+adminApi.MapPost("/projects/{slug}/restart", async (string slug, IProjectService projectService, ISystemService systemService) =>
+{
+    var project = projectService.GetBySlug(slug);
+    if (project == null) return Results.NotFound();
+
+    var (success, output) = await systemService.RestartGame(project);
+    return success ? Results.Ok(output) : Results.BadRequest(output);
+});
+
+// GET /api/admin/projects/{slug}/logs - stream logs (SSE)
+adminApi.MapGet("/projects/{slug}/logs", async (string slug, IProjectService projectService, ISystemService systemService, HttpContext httpContext, CancellationToken ct) =>
+{
+    var project = projectService.GetBySlug(slug);
+    if (project == null) {
+        httpContext.Response.StatusCode = 404;
+        return;
+    }
+
+    httpContext.Response.ContentType = "text/event-stream";
+    httpContext.Response.Headers.CacheControl = "no-cache";
+    httpContext.Response.Headers.Connection = "keep-alive";
+
+    await foreach (var line in systemService.StreamLogs(project, ct))
+    {
+        await httpContext.Response.WriteAsync($"data: {line}\n\n", ct);
+        await httpContext.Response.Body.FlushAsync(ct);
+    }
+});
+
 app.Run();
+
+public record LoginRequest(string Username, string Password);
 
 [JsonSerializable(typeof(ProjectListResponse))]
 [JsonSerializable(typeof(ProjectInfo))]
@@ -122,6 +246,9 @@ app.Run();
 [JsonSerializable(typeof(ReplayListResponse))]
 [JsonSerializable(typeof(ReplayFileInfo))]
 [JsonSerializable(typeof(List<ReplayFileInfo>))]
+[JsonSerializable(typeof(ProjectSettings))]
+[JsonSerializable(typeof(List<ProjectSettings>))]
+[JsonSerializable(typeof(LoginRequest))]
 internal partial class AppJsonSerializerContext : JsonSerializerContext
 {
 }

@@ -1,0 +1,24 @@
+[
+  {
+    "Slug": "castledash",
+    "Name": "Castle Dash",
+    "Description": "Castle Dash game",
+    "WebGLUrl": "/webgl/fakemario/index.html",
+    "ReplayViewerUrl": "/webgl/fakemario-replay-viewer/index.html",
+    "ReplayFolderPath": "/app/gamedata/fakemario/build/fakeMario-server_Data/StreamingAssets",
+    "FileExtension": ".replay",
+    "RestartType": 1,
+    "RestartServiceName": "castle-dash-game",
+    "LogType": 0
+  },
+  {
+    "Slug": "bubble-blitzers",
+    "Name": "Bubble Blitzers",
+    "Description": "Bubble Blitzers game",
+    "WebGLUrl": "/webgl/bubble-blitzers/index.html",
+    "RestartType": 2,
+    "RestartServiceName": "bubble-blitzers-server",
+    "RestartPath": "/home/user/games/bubble-blitzers/docker-compose.yml",
+    "LogType": 0
+  }
+]
