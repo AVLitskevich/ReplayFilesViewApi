@@ -58,33 +58,29 @@ jobs:
             echo "ROOT_PATH=${{ secrets.ROOT_PATH }}" > $TARGET_DIR/.env
             mkdir -p $DATA_DIR
             
-            # Fix accidental directory issues (Docker sometimes creates directories if nodes are missing)
-            if [ -d $DATA_DIR/appsettings.json ]; then
-                echo "Removing accidental directory appsettings.json..."
-                rm -rf $DATA_DIR/appsettings.json
-            fi
-            
-            if [ -d $DATA_DIR/projects.json ]; then
-                echo "Removing accidental directory projects.json..."
-                rm -rf $DATA_DIR/projects.json
-            fi
+            # Fix accidental directory issues (FORCE configuration paths to be files)
+            [ -d $DATA_DIR/appsettings.json ] && { echo "[Maintenance] NUKING directory $DATA_DIR/appsettings.json and replacing with file..."; sudo rm -rf $DATA_DIR/appsettings.json; }
+            [ -d $DATA_DIR/projects.json ] && { echo "[Maintenance] NUKING directory $DATA_DIR/projects.json and replacing with file..."; sudo rm -rf $DATA_DIR/projects.json; }
             
             # Initialize appsettings.json if missing
             if [ ! -f $DATA_DIR/appsettings.json ]; then
-              cp $TARGET_DIR/appsettings.json $DATA_DIR/appsettings.json
+              sudo cp $TARGET_DIR/appsettings.json $DATA_DIR/appsettings.json
               echo "Initialized appsettings.json"
             fi
             
             # Initialize projects.json if missing
             if [ ! -f $DATA_DIR/projects.json ]; then
               if [ -f $TARGET_DIR/projects.json ]; then
-                cp $TARGET_DIR/projects.json $DATA_DIR/projects.json
+                sudo cp $TARGET_DIR/projects.json $DATA_DIR/projects.json
                 echo "Initialized projects.json"
               else
-                echo "[]" > $DATA_DIR/projects.json
+                echo "[]" | sudo tee $DATA_DIR/projects.json > /dev/null
                 echo "Created empty projects.json"
               fi
             fi
+            
+            # Fix ownership (ensure container user can read/write if mounted)
+            sudo chown -R $USER:$USER $DATA_DIR
             
             cd $TARGET_DIR
             docker compose up -d --build --force-recreate
