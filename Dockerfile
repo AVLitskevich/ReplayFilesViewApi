@@ -19,5 +19,6 @@ FROM base AS final
 WORKDIR /app
 RUN adduser --disabled-password --gecos "" appuser
 COPY --from=publish /app/publish .
+RUN chown -R appuser:appuser /app
 USER appuser
 ENTRYPOINT ["dotnet", "ReplayFilesViewApi.dll"]

@@ -29,7 +29,7 @@ jobs:
           username: ${{ secrets.REMOTE_USER }}
           password: ${{ secrets.REMOTE_PASSWORD }}
           source: "."
-          target: "~/replay-viewer"
+          target: ${{ secrets.DEPLOY_PATH }}
           rm: true
 
       - name: Deploy to Server via SSH
@@ -39,11 +39,40 @@ jobs:
           username: ${{ secrets.REMOTE_USER }}
           password: ${{ secrets.REMOTE_PASSWORD }}
           script: |
-            echo "ROOT_PATH=${{ secrets.ROOT_PATH }}" > ~/replay-viewer/.env
-            mkdir -p ${{ secrets.ROOT_PATH }}/replay-data
-            if [ ! -f ${{ secrets.ROOT_PATH }}/replay-data/appsettings.json ]; then
-              cp ~/replay-viewer/appsettings.json ${{ secrets.ROOT_PATH }}/replay-data/appsettings.json
-              echo "Created initial appsettings.json in ${{ secrets.ROOT_PATH }}/replay-data/"
+            TARGET_DIR=${{ secrets.DEPLOY_PATH }}
+            DATA_DIR=${{ secrets.ROOT_PATH }}/replay-data
+            
+            # Setup environment
+            echo "ROOT_PATH=${{ secrets.ROOT_PATH }}" > $TARGET_DIR/.env
+            mkdir -p $DATA_DIR
+            
+            # Fix accidental directory issues (Docker sometimes creates directories if nodes are missing)
+            if [ -d $DATA_DIR/appsettings.json ]; then
+                echo "Removing accidental directory appsettings.json..."
+                rm -rf $DATA_DIR/appsettings.json
             fi
-            cd ~/replay-viewer
+            
+            if [ -d $DATA_DIR/projects.json ]; then
+                echo "Removing accidental directory projects.json..."
+                rm -rf $DATA_DIR/projects.json
+            fi
+            
+            # Initialize appsettings.json if missing
+            if [ ! -f $DATA_DIR/appsettings.json ]; then
+              cp $TARGET_DIR/appsettings.json $DATA_DIR/appsettings.json
+              echo "Initialized appsettings.json"
+            fi
+            
+            # Initialize projects.json if missing
+            if [ ! -f $DATA_DIR/projects.json ]; then
+              if [ -f $TARGET_DIR/projects.json ]; then
+                cp $TARGET_DIR/projects.json $DATA_DIR/projects.json
+                echo "Initialized projects.json"
+              else
+                echo "[]" > $DATA_DIR/projects.json
+                echo "Created empty projects.json"
+              fi
+            fi
+            
+            cd $TARGET_DIR
             docker compose up -d --build --force-recreate
