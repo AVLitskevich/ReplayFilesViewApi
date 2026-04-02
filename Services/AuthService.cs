@@ -33,12 +33,7 @@ public class AuthService : IAuthService
         using var pbkdf2 = new Rfc2898DeriveBytes(inputPassword, salt, Iterations, HashAlgorithmName.SHA256);
         var actualHash = pbkdf2.GetBytes(HashSize);
 
-        bool result = CryptographicOperations.FixedTimeEquals(actualHash, expectedHash);
-        
-        _logger.LogInformation("Auth Check - Input: {Input}, StoredHash: {Stored}, ComputedHash: {Computed}, Result: {Result}", 
-            inputPassword, admin.PasswordHash, Convert.ToBase64String(actualHash), result);
-
-        return result;
+        return CryptographicOperations.FixedTimeEquals(actualHash, expectedHash);
     }
 
     public (string hash, string salt) GenerateHash(string password)

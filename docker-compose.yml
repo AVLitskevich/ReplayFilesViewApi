@@ -6,6 +6,7 @@ services:
     ports:
       - "8080:8080"
     volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
       - ${ROOT_PATH}/replay-data/appsettings.json:/app/appsettings.json:ro
       - ${ROOT_PATH}/replay-data/projects.json:/app/projects.json
       - ${ROOT_PATH}:/app/gamedata:ro

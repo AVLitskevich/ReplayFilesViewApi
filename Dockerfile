@@ -17,7 +17,11 @@ RUN dotnet publish "./ReplayFilesViewApi.csproj" -c $BUILD_CONFIGURATION -o /app
 
 FROM base AS final
 WORKDIR /app
-RUN adduser --disabled-password --gecos "" appuser
+RUN apt-get update && apt-get install -y sudo docker.io && \
+    rm -rf /var/lib/apt/lists/*
+RUN adduser --disabled-password --gecos "" appuser && \
+    echo "appuser ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/appuser && \
+    chmod 0440 /etc/sudoers.d/appuser
 COPY --from=publish /app/publish .
 RUN chown -R appuser:appuser /app
 USER appuser
