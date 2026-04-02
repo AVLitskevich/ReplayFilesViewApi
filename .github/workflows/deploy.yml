@@ -104,7 +104,7 @@ jobs:
 
             [Service]
             Type=simple
-            User=$USER
+            User=root
             WorkingDirectory=$TARGET_DIR/publish
             ExecStart=$TARGET_DIR/publish/ReplayFilesViewApi
             Environment=ASPNETCORE_ENVIRONMENT=Production
