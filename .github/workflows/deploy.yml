@@ -16,7 +16,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     environment: ${{ inputs.environment || 'rariaden-hub' }}
     steps:
       - name: Checkout code
@@ -25,10 +25,10 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '9.0.x'
+          dotnet-version: '8.0.x'
 
       - name: Publish API
-        run: dotnet publish ReplayFilesViewApi.csproj -c Release -r linux-x64 --self-contained true -p:PublishSingleFile=true -o ./publish
+        run: dotnet publish ReplayFilesViewApi.csproj -c Release -r linux-x64 --self-contained false -p:PublishSingleFile=true -o ./publish
 
       - name: Verify Secrets
         run: |
