@@ -21,6 +21,14 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Publish API
+        run: dotnet publish ReplayFilesViewApi.csproj -c Release -r linux-x64 --self-contained true -p:PublishSingleFile=true -o ./publish
 
       - name: Verify Secrets
         run: |
@@ -39,7 +47,7 @@ jobs:
           host: ${{ secrets.REMOTE_HOST }}
           username: ${{ secrets.REMOTE_USER }}
           password: ${{ secrets.REMOTE_PASSWORD }}
-          source: "."
+          source: "publish"
           target: ${{ secrets.DEPLOY_PATH }}
           rm: false # Handle cleanup in SSH for better control
 
@@ -64,14 +72,14 @@ jobs:
             
             # Initialize appsettings.json if missing
             if [ ! -f $DATA_DIR/appsettings.json ]; then
-              sudo cp $TARGET_DIR/appsettings.json $DATA_DIR/appsettings.json
+              sudo cp $TARGET_DIR/publish/appsettings.json $DATA_DIR/appsettings.json
               echo "Initialized appsettings.json"
             fi
             
             # Initialize projects.json if missing
             if [ ! -f $DATA_DIR/projects.json ]; then
-              if [ -f $TARGET_DIR/projects.json ]; then
-                sudo cp $TARGET_DIR/projects.json $DATA_DIR/projects.json
+              if [ -f $TARGET_DIR/publish/projects.json ]; then
+                sudo cp $TARGET_DIR/publish/projects.json $DATA_DIR/projects.json
                 echo "Initialized projects.json"
               else
                 echo "[]" | sudo tee $DATA_DIR/projects.json > /dev/null
@@ -79,8 +87,34 @@ jobs:
               fi
             fi
             
+            # Ensure the dashboard can write to projects.json
+            sudo chmod 666 $DATA_DIR/projects.json
+            
             # Fix ownership (ensure container user can read/write if mounted)
             sudo chown -R $USER:$USER $DATA_DIR
             
-            cd $TARGET_DIR
-            docker compose up -d --build --force-recreate
+            chmod +x $TARGET_DIR/publish/ReplayFilesViewApi
+            
+            # Setup Systemd Service
+            SERVICE_FILE=/etc/systemd/system/skillcade-replay-viewer.service
+            sudo bash -c "cat > $SERVICE_FILE" <<EOF
+            [Unit]
+            Description=Skillcade Replay Viewer API
+            After=network.target
+
+            [Service]
+            Type=simple
+            User=$USER
+            WorkingDirectory=$TARGET_DIR/publish
+            ExecStart=$TARGET_DIR/publish/ReplayFilesViewApi
+            Environment=ASPNETCORE_ENVIRONMENT=Production
+            Restart=always
+            RestartSec=10
+
+            [Install]
+            WantedBy=multi-user.target
+            EOF
+            
+            sudo systemctl daemon-reload
+            sudo systemctl enable skillcade-replay-viewer
+            sudo systemctl restart skillcade-replay-viewer

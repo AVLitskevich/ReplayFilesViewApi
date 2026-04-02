@@ -33,11 +33,10 @@ public class SystemService : ISystemService
             command = "sudo";
             args = $"systemctl restart {project.RestartServiceName}";
         }
-        else // DockerCompose
+        else // Docker
         {
-            var composePath = string.IsNullOrEmpty(project.RestartPath) ? "docker-compose.yml" : project.RestartPath;
             command = "docker";
-            args = $"compose -f {composePath} restart {project.RestartServiceName}";
+            args = $"restart {project.RestartServiceName}";
         }
 
         return await ExecuteCommand(command, args);
@@ -62,9 +61,8 @@ public class SystemService : ISystemService
             }
             else
             {
-                var composePath = string.IsNullOrEmpty(project.RestartPath) ? "docker-compose.yml" : project.RestartPath;
                 command = "docker";
-                args = $"compose -f {composePath} logs -f {project.RestartServiceName}";
+                args = $"logs -f {project.RestartServiceName}";
             }
         }
 
