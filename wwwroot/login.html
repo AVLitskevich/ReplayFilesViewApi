@@ -179,6 +179,31 @@
         .footer-links a:hover {
             text-decoration: underline;
         }
+
+        .password-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 12px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .password-toggle input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            accent-color: var(--primary);
+        }
+
+        .password-toggle label {
+            margin-bottom: 0;
+            font-size: 13px;
+            color: #a8abb3;
+            cursor: pointer;
+            text-transform: none;
+            letter-spacing: normal;
+        }
     </style>
 </head>
 <body>
@@ -240,14 +265,14 @@
                 });
 
                 if (response.ok) {
-                    window.location.href = '/admin.html';
+                    window.location.href = '/admin';
                 } else {
-                    errorDiv.textContent = 'Invalid username or password';
-                    errorDiv.style.display = 'block';
+                    errorMessage.textContent = 'Invalid username or password';
+                    errorMessage.style.display = 'block';
                 }
             } catch (err) {
-                errorDiv.textContent = 'Connection error. Please try again.';
-                errorDiv.style.display = 'block';
+                errorMessage.textContent = 'Connection error. Please try again.';
+                errorMessage.style.display = 'block';
             }
         });
     </script>

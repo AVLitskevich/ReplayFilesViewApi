@@ -12,9 +12,15 @@ public interface IAuthService
 
 public class AuthService : IAuthService
 {
+    private readonly ILogger<AuthService> _logger;
     private const int Iterations = 1;
     private const int SaltSize = 16;
     private const int HashSize = 32;
+
+    public AuthService(ILogger<AuthService> logger)
+    {
+        _logger = logger;
+    }
 
     public bool VerifyPassword(string inputPassword, AdminSettings admin)
     {
@@ -27,7 +33,12 @@ public class AuthService : IAuthService
         using var pbkdf2 = new Rfc2898DeriveBytes(inputPassword, salt, Iterations, HashAlgorithmName.SHA256);
         var actualHash = pbkdf2.GetBytes(HashSize);
 
-        return CryptographicOperations.FixedTimeEquals(actualHash, expectedHash);
+        bool result = CryptographicOperations.FixedTimeEquals(actualHash, expectedHash);
+        
+        _logger.LogInformation("Auth Check - Input: {Input}, StoredHash: {Stored}, ComputedHash: {Computed}, Result: {Result}", 
+            inputPassword, admin.PasswordHash, Convert.ToBase64String(actualHash), result);
+
+        return result;
     }
 
     public (string hash, string salt) GenerateHash(string password)
