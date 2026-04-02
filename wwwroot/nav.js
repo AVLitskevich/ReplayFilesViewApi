@@ -51,10 +51,13 @@
 
         if (data.isAuthenticated) {
             // Logged In: Show Admin and Logout
-            const adminLink = document.createElement('a');
-            adminLink.href = '/admin';
-            adminLink.className = 'nav-btn nav-btn-primary';
-            adminLink.textContent = 'Admin Dashboard';
+            if (window.location.pathname !== '/admin' && window.location.pathname !== '/admin.html') {
+                const adminLink = document.createElement('a');
+                adminLink.href = '/admin';
+                adminLink.className = 'nav-btn nav-btn-primary';
+                adminLink.textContent = 'Admin Dashboard';
+                navContainer.appendChild(adminLink);
+            }
             
             const logoutBtn = document.createElement('button');
             logoutBtn.className = 'nav-btn';
@@ -64,7 +67,6 @@
                 window.location.href = '/';
             };
 
-            navContainer.appendChild(adminLink);
             navContainer.appendChild(logoutBtn);
         } else {
             // Logged Out: Show Login
