@@ -1,6 +1,6 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Text;
+using System.Runtime.CompilerServices;
 using ReplayFilesViewApi.Models;
 
 namespace ReplayFilesViewApi.Services;
@@ -43,7 +43,7 @@ public class SystemService : ISystemService
         return await ExecuteCommand(command, args);
     }
 
-    public async IAsyncEnumerable<string> StreamLogs(ProjectSettings project, CancellationToken ct)
+    public async IAsyncEnumerable<string> StreamLogs(ProjectSettings project, [EnumeratorCancellation] CancellationToken ct)
     {
         string command;
         string args;

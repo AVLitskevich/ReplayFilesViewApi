@@ -12,7 +12,7 @@ public interface IAuthService
 
 public class AuthService : IAuthService
 {
-    private const int Iterations = 10000;
+    private const int Iterations = 1;
     private const int SaltSize = 16;
     private const int HashSize = 32;
 

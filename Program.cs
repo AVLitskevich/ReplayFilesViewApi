@@ -145,8 +145,18 @@ app.MapGet("/{slug}/viewer", (string slug, IProjectService projectService) =>
     return Results.File("viewer.html", "text/html");
 }).WithName("ProjectViewerPage");
 
+// Cleaner URLs for Login and Admin
+app.MapGet("/login", () => Results.File("login.html", "text/html"));
+app.MapGet("/admin", () => Results.File("admin.html", "text/html"));
+
 // Admin API endpoints
 var adminApi = app.MapGroup("/api/admin").RequireAuthorization();
+
+// Login Status (Public)
+app.MapGet("/api/admin/status", (HttpContext httpContext) => 
+{
+    return Results.Ok(new { isAuthenticated = httpContext.User.Identity?.IsAuthenticated ?? false });
+}).AllowAnonymous();
 
 // Login (Public)
 app.MapPost("/api/admin/login", async (LoginRequest request, IAuthService authService, Microsoft.Extensions.Options.IOptions<AdminSettings> adminSettings, HttpContext httpContext) =>

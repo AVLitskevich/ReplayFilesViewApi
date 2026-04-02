@@ -190,9 +190,9 @@
                 <p class="subtitle">Secure login for game management</p>
             </div>
 
-            <div id="errorMessage" class="error-message">Invalid username or password</div>
+            <div id="error-message" class="error-message"></div>
 
-            <form id="loginForm">
+            <form id="login-form">
                 <div class="form-group">
                     <label for="username">Username</label>
                     <input type="text" id="username" name="username" required placeholder="Enter your username">
@@ -200,23 +200,34 @@
                 <div class="form-group">
                     <label for="password">Password</label>
                     <input type="password" id="password" name="password" required placeholder="••••••••">
+                    <div class="password-toggle">
+                        <input type="checkbox" id="show-password">
+                        <label for="show-password">Show Password</label>
+                    </div>
                 </div>
-                <button type="submit" class="btn-primary">Sign In</button>
+                <button type="submit" id="login-button" class="btn-primary">Sign In</button>
             </form>
-
-            <div class="footer-links">
-                <a href="#">Forgot Password?</a>
-                <span>&bull;</span>
-                <a href="#">Help Center</a>
-            </div>
+        </div>
+        <div class="login-footer">
+            <p>&copy; 2026 Skillcade. All rights reserved.</p>
         </div>
     </div>
 
     <script>
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        const loginForm = document.getElementById('login-form');
+        const loginButton = document.getElementById('login-button');
+        const errorMessage = document.getElementById('error-message');
+        const showPasswordCheckbox = document.getElementById('show-password');
+        const passwordInput = document.getElementById('password');
+
+        // Toggle Password Visibility
+        showPasswordCheckbox.addEventListener('change', () => {
+            passwordInput.type = showPasswordCheckbox.checked ? 'text' : 'password';
+        });
+
+        loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const errorDiv = document.getElementById('errorMessage');
-            errorDiv.style.display = 'none';
+            errorMessage.style.display = 'none';
 
             const formData = new FormData(e.target);
             const data = Object.fromEntries(formData.entries());
