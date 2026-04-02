@@ -1,349 +1,453 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard | Skillcade Admin</title>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&family=Manrope:wght@400;600&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --background: #0a0e14;
-            --surface: #0f141a;
-            --surface-card: #1b2028;
-            --primary: #9aa8ff;
-            --secondary: #b78efe;
-            --tertiary: #98f0ff;
-            --text: #f1f3fc;
-            --text-dim: #a8abb3;
-            --error: #ff6e84;
-            --success: #00e676;
-            --sidebar-width: 260px;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Manrope', sans-serif; background: var(--background); color: var(--text); overflow: hidden; }
-
-        /* Layout Structure */
-        .app-container { display: flex; height: 100vh; }
-        .sidebar { width: var(--sidebar-width); background: rgba(15, 20, 26, 0.8); backdrop-filter: blur(20px); border-right: 1px solid rgba(255, 255, 255, 0.05); display: flex; flex-direction: column; padding: 32px 20px; }
-        .main-content { flex: 1; overflow-y: auto; padding: 40px; position: relative; }
-
-        /* Sidebar Elements */
-        .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 48px; }
-        .brand .hex-logo { width: 36px; height: 36px; background: linear-gradient(135deg, var(--secondary), var(--primary)); clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%); display: flex; align-items: center; justify-content: center; font-family: 'Space Grotesk', sans-serif; font-weight: 700; color: #0a0e14; }
-        .brand span { font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 500; }
-
-        .nav-link { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px; color: var(--text-dim); text-decoration: none; margin-bottom: 8px; transition: all 0.3s; }
-        .nav-link.active { background: rgba(154, 168, 255, 0.1); color: var(--primary); }
-        .nav-link:hover:not(.active) { color: var(--text); background: rgba(255, 255, 255, 0.05); }
-
-        /* Dashboard Header */
-        header { display: flex; align-items: center; gap: 24px; margin-bottom: 40px; }
-        h1 { font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 500; }
-        .btn { padding: 10px 20px; border-radius: 10px; font-weight: 600; font-size: 14px; cursor: pointer; border: none; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; }
-        .btn-primary { background: linear-gradient(90deg, var(--secondary), var(--primary)); color: #0a0e14; }
-        .btn-secondary { background: rgba(255, 255, 255, 0.05); color: var(--text); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .btn:hover { transform: translateY(-2px); filter: brightness(1.1); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
-
-        /* Game Cards Grid */
-        .games-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 24px; }
-        .game-card { background: var(--surface-card); border-radius: 20px; padding: 24px; border: 1px solid rgba(255, 255, 255, 0.05); transition: all 0.3s; position: relative; overflow: hidden; }
-        .game-card:hover { border-color: var(--primary); }
-        .game-card .status-badge { position: absolute; top: 20px; right: 20px; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--tertiary); background: rgba(152, 240, 255, 0.1); padding: 4px 10px; border-radius: 20px; }
-        .game-card h3 { font-family: 'Space Grotesk', sans-serif; margin-bottom: 8px; font-size: 20px; }
-        .game-card p { font-size: 13px; color: var(--text-dim); line-height: 1.5; margin-bottom: 20px; }
-        .game-card .card-footer { display: flex; gap: 10px; border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 20px; }
-        .btn-sm { padding: 8px 14px; font-size: 12px; border-radius: 8px; }
-
-        /* Log Viewer Console */
-        .log-overlay { position: fixed; bottom: 40px; right: 40px; width: 600px; height: 400px; background: #000; border-radius: 16px; border: 1px solid var(--primary); z-index: 1000; display: none; flex-direction: column; box-shadow: 0 40px 100px rgba(0,0,0,0.8); }
-        .log-header { padding: 12px 20px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-family: 'Space Grotesk', sans-serif; color: var(--primary); }
-        .log-content { flex: 1; overflow-y: auto; padding: 15px; font-family: 'Consolas', 'Courier New', monospace; font-size: 12px; color: #fff; line-height: 1.4; scroll-behavior: smooth; }
-        .log-content .line { margin-bottom: 2px; }
-
-        /* Modal Styles */
-        .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); z-index: 2000; display: none; align-items: center; justify-content: center; padding: 20px; }
-        .modal { background: var(--surface); width: 100%; max-width: 600px; border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.05); padding: 32px; max-height: 90vh; overflow-y: auto; }
-        .modal h2 { font-family: 'Space Grotesk', sans-serif; margin-bottom: 24px; }
-        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; font-size: 12px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 8px; font-weight: 600; letter-spacing: 0.5px; }
-        .form-group input, .form-group select, .form-group textarea { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; padding: 12px; color: #fff; font-family: inherit; font-size: 14px; }
-        .form-group input:focus { border-color: var(--primary); outline: none; }
-        .modal-footer { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
-
-        /* Utils */
-        .close-btn { cursor: pointer; font-size: 20px; color: var(--text-dim); }
-        .close-btn:hover { color: #fff; }
-    </style>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NEON MONOLITH // DASHBOARD</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Manrope:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "outline": "#72757d",
+            "on-surface-variant": "#a8abb3",
+            "on-surface": "#f1f3fc",
+            "surface-tint": "#9aa8ff",
+            "on-secondary-fixed-variant": "#6139a3",
+            "primary-container": "#8c9bf3",
+            "primary-fixed": "#96a5ff",
+            "secondary-fixed-dim": "#d2b7ff",
+            "on-secondary": "#330070",
+            "background": "#0a0e14",
+            "primary": "#9aa8ff",
+            "on-primary-container": "#00156d",
+            "primary-fixed-dim": "#8998f0",
+            "on-background": "#f1f3fc",
+            "tertiary-fixed": "#58e7fb",
+            "surface-container-highest": "#20262f",
+            "on-primary-fixed-variant": "#1b2c7f",
+            "tertiary-container": "#58e7fb",
+            "surface": "#0a0e14",
+            "secondary-dim": "#b189f8",
+            "surface-variant": "#20262f",
+            "outline-variant": "#44484f",
+            "on-error": "#490013",
+            "on-error-container": "#ffb2b9",
+            "surface-bright": "#262c36",
+            "surface-container": "#151a21",
+            "tertiary": "#98f0ff",
+            "on-secondary-fixed": "#431585",
+            "on-tertiary-container": "#00515b",
+            "on-tertiary-fixed-variant": "#005b66",
+            "on-tertiary-fixed": "#003c44",
+            "surface-container-lowest": "#000000",
+            "inverse-surface": "#f8f9ff",
+            "tertiary-fixed-dim": "#45d8ed",
+            "error-container": "#a70138",
+            "on-primary": "#122479",
+            "error": "#ff6e84",
+            "surface-container-high": "#1b2028",
+            "inverse-on-surface": "#51555c",
+            "primary-dim": "#8998f0",
+            "secondary-fixed": "#ddc8ff",
+            "secondary": "#b78efe",
+            "on-tertiary": "#005b65",
+            "error-dim": "#d73357",
+            "on-secondary-container": "#dcc7ff",
+            "surface-dim": "#0a0e14",
+            "secondary-container": "#572e99",
+            "on-primary-fixed": "#00083f",
+            "surface-container-low": "#0f141a",
+            "tertiary-dim": "#45d8ed",
+            "inverse-primary": "#4958ac"
+          },
+          fontFamily: {
+            "headline": ["Space Grotesk"],
+            "body": ["Manrope"],
+            "label": ["Manrope"]
+          },
+          borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+        },
+      },
+    }
+</script>
+<style>
+    body {
+      background-color: #0a0e14;
+      font-family: 'Manrope', sans-serif;
+      color: #f1f3fc;
+    }
+    .hex-grid {
+      background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0l25.98 15v30L30 60 4.02 45V15z' fill-rule='evenodd' stroke='%2320262f' stroke-width='1' fill='none' opacity='0.2'/%3E%3C/svg%3E");
+    }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+    }
+    .terminal-scroll::-webkit-scrollbar {
+      width: 4px;
+    }
+    .terminal-scroll::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .terminal-scroll::-webkit-scrollbar-thumb {
+      background: #44484f;
+      border-radius: 10px;
+    }
+    
+    /* Input Styling overrides for modal */
+    .form-input {
+        width: 100%;
+        background-color: rgba(0,0,0,0.3);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 0.5rem;
+        padding: 0.75rem 1rem;
+        color: white;
+        transition: all 0.2s;
+    }
+    .form-input:focus {
+        outline: none;
+        border-color: #9aa8ff;
+        box-shadow: 0 0 0 2px rgba(154,168,255,0.2);
+    }
+    .form-label {
+        display: block;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #a8abb3;
+        margin-bottom: 0.5rem;
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 700;
+    }
+</style>
 </head>
-<body>
-    <div class="app-container">
-        <!-- Sidebar -->
-        <div class="sidebar">
-            <div class="brand">
-                <div class="hex-logo">S</div>
-                <span>Skillcade Admin</span>
+<body class="bg-background text-on-background min-h-screen overflow-hidden">
+<!-- Hexagonal Background Texture -->
+<div class="fixed inset-0 hex-grid pointer-events-none opacity-40"></div>
+
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col h-screen overflow-y-auto relative z-10 pb-20">
+    <!-- TopAppBar -->
+    <header class="fixed top-0 w-full h-16 bg-slate-950/40 backdrop-blur-md flex justify-between items-center px-12 z-20">
+        <div class="flex items-center gap-4">
+            <span class="material-symbols-outlined text-cyan-400" style="font-variation-settings: 'FILL' 1;">hexagon</span>
+            <h2 class="text-lg font-black text-white font-['Space_Grotesk'] uppercase tracking-[0.2em]">SKILLCADE ADMIN</h2>
+        </div>
+        <div class="flex items-center gap-6">
+            <a href="/" class="flex items-center gap-2 px-4 py-2 rounded-lg border border-outline-variant/30 text-on-surface hover:bg-surface-container-highest transition-colors uppercase tracking-widest text-xs font-headline cursor-pointer">
+                <span class="material-symbols-outlined text-sm">home</span> Home Hub
+            </a>
+            <button class="flex items-center gap-2 px-4 py-2 rounded-lg bg-error-dim/10 border border-error-dim/30 text-error-dim hover:bg-error-dim/20 transition-colors uppercase tracking-widest text-xs font-headline cursor-pointer" onclick="logout()">
+                <span class="material-symbols-outlined text-sm">logout</span> Sign Out
+            </button>
+        </div>
+    </header>
+
+    <!-- Content Canvas -->
+    <div class="pt-24 px-12 pb-12 flex-1 flex flex-col space-y-8">
+        <!-- Welcome Section -->
+        <section class="flex justify-between items-end">
+            <div>
+                <h1 class="text-4xl font-headline font-bold text-on-surface">Game Module Control</h1>
             </div>
-        </div>
-
-        <!-- Main Content -->
-        <div class="main-content">
-            <header>
-                <h1>Game Management</h1>
-                <button class="btn btn-primary" onclick="openAddModal()">+ New Game</button>
-            </header>
-
-            <div class="games-grid" id="gamesGrid">
-                <!-- Cards injected here -->
+            <div class="flex gap-4">
+                <button class="px-6 py-3 rounded-xl bg-gradient-to-r from-secondary to-primary text-on-primary font-headline text-xs tracking-widest uppercase font-bold shadow-[0_0_20px_rgba(183,142,254,0.3)] hover:scale-[1.02] active:scale-95 transition-all" onclick="openAddModal()">
+                    <span class="flex items-center gap-2"><span class="material-symbols-outlined text-sm">add</span> Deploy Game Module</span>
+                </button>
             </div>
-        </div>
-    </div>
+        </section>
 
-    <!-- Log Console -->
-    <div id="logOverlay" class="log-overlay">
-        <div class="log-header">
-            <span id="logTitle">Game Logs</span>
-            <span class="close-btn" onclick="closeLogs()">×</span>
-        </div>
-        <div id="logContent" class="log-content"></div>
-    </div>
+        <!-- Dynamic Game Cards Grid -->
+        <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="gamesGrid">
+            <!-- Rendered via JS -->
+        </section>
 
-    <!-- Modal: Add/Edit Game -->
-    <div id="gameModal" class="modal-backdrop">
-        <div class="modal">
-            <h2 id="modalTitle">Edit Game</h2>
-            <form id="gameForm">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Display Name</label>
-                        <input type="text" name="name" required placeholder="e.g. Bubble Blitzers">
+        <!-- Terminal Log Viewer -->
+        <section id="logTerminal" class="hidden bg-surface-container-lowest rounded-xl border border-outline-variant/10 overflow-hidden shadow-2xl mt-8">
+            <div class="bg-surface-container-high px-6 py-2 flex items-center justify-between border-b border-outline-variant/10">
+                <div class="flex items-center gap-4">
+                    <div class="flex gap-1.5">
+                        <div class="w-2.5 h-2.5 rounded-full bg-error-dim/40"></div>
+                        <div class="w-2.5 h-2.5 rounded-full bg-tertiary/40"></div>
+                        <div class="w-2.5 h-2.5 rounded-full bg-tertiary-fixed-dim/40"></div>
                     </div>
-                    <div class="form-group">
-                        <label>Slug (URL Identifier)</label>
-                        <input type="text" name="slug" required placeholder="e.g. bubble-blitzers">
+                    <span id="logTitle" class="text-[10px] font-headline text-on-surface-variant uppercase tracking-widest">monolith-terminal</span>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button class="material-symbols-outlined text-on-surface-variant hover:text-white transition-colors cursor-pointer text-sm" onclick="closeLogs()">close</button>
+                </div>
+            </div>
+            <div id="logContent" class="p-6 h-64 overflow-y-auto terminal-scroll font-mono text-sm space-y-1">
+                <!-- Log content injected here -->
+            </div>
+        </section>
+    </div>
+</main>
+
+<!-- Modal: Add/Edit Game -->
+<div id="gameModal" class="fixed inset-0 bg-background/90 backdrop-blur-md z-50 hidden items-center justify-center p-6">
+    <div class="w-full max-w-3xl bg-surface-container-high rounded-2xl border border-outline-variant/20 shadow-2xl max-h-[90vh] flex flex-col overflow-hidden">
+        <div class="px-8 py-6 border-b border-outline-variant/10 flex justify-between items-center bg-surface-variant/30">
+            <h2 id="modalTitle" class="text-2xl font-headline font-bold text-on-surface tracking-wide">Configure Game Module</h2>
+            <button class="text-on-surface-variant hover:text-error transition-colors" onclick="closeModal()">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        
+        <div class="p-8 overflow-y-auto flex-1">
+            <form id="gameForm" class="space-y-6">
+                <div class="grid grid-cols-2 gap-6">
+                    <div>
+                        <label class="form-label">Display Name</label>
+                        <input type="text" name="name" required placeholder="e.g. Bubble Blitzers" class="form-input">
+                    </div>
+                    <div>
+                        <label class="form-label">Slug (URL Identifier)</label>
+                        <input type="text" name="slug" required placeholder="e.g. bubble-blitzers" class="form-input">
                     </div>
                 </div>
-                <div class="form-group">
-                    <label>Description</label>
-                    <textarea name="description" rows="2" placeholder="Brief game description"></textarea>
+                <div>
+                    <label class="form-label">Description</label>
+                    <textarea name="description" rows="2" placeholder="Brief game description" class="form-input resize-none"></textarea>
                 </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>WebGL URL</label>
-                        <input type="text" name="webGLUrl" placeholder="/webgl/game/index.html">
+                <div class="grid grid-cols-2 gap-6">
+                    <div>
+                        <label class="form-label">WebGL URL</label>
+                        <input type="text" name="webGLUrl" placeholder="/webgl/game/index.html" class="form-input">
                     </div>
-                    <div class="form-group">
-                        <label>Replay Viewer URL</label>
-                        <input type="text" name="replayViewerUrl" placeholder="/webgl/viewer/index.html">
+                    <div>
+                        <label class="form-label">Replay Viewer URL</label>
+                        <input type="text" name="replayViewerUrl" placeholder="/webgl/viewer/index.html" class="form-input">
                     </div>
                 </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Replay Folder Path</label>
-                        <input type="text" name="replayFolderPath" placeholder="/app/gamedata/...">
+                <div class="grid grid-cols-2 gap-6 pb-6 border-b border-outline-variant/10">
+                    <div>
+                        <label class="form-label">Replay Folder Path</label>
+                        <input type="text" name="replayFolderPath" placeholder="/app/gamedata/..." class="form-input">
                     </div>
-                    <div class="form-group">
-                        <label>File Extension</label>
-                        <input type="text" name="fileExtension" placeholder=".replay">
+                    <div>
+                        <label class="form-label">File Extension</label>
+                        <input type="text" name="fileExtension" placeholder=".replay" class="form-input">
                     </div>
                 </div>
                 
-                <h3 style="font-size: 14px; margin-bottom: 20px; color: var(--primary); font-family: 'Space Grotesk'">Server Control</h3>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Restart Type</label>
-                        <select name="restartType">
-                            <option value="None">None</option>
+                <h3 class="text-xs uppercase tracking-widest text-primary font-headline font-bold mt-4 pt-2">Server Subsystem Control</h3>
+                <div class="grid grid-cols-2 gap-6">
+                    <div>
+                        <label class="form-label">Restart Protocol</label>
+                        <select name="restartType" class="form-input">
+                            <option value="None">None (Static Site)</option>
                             <option value="Systemd">Systemd</option>
                             <option value="DockerCompose">Docker Compose</option>
                         </select>
                     </div>
-                    <div class="form-group">
-                        <label>Service/Container Name</label>
-                        <input type="text" name="restartServiceName" placeholder="Service ID">
+                    <div>
+                        <label class="form-label">Target Service ID</label>
+                        <input type="text" name="restartServiceName" placeholder="Service Name" class="form-input">
                     </div>
                 </div>
-                <div class="form-group">
-                    <label>Docker Compose Path / Script Path</label>
-                    <input type="text" name="restartPath" placeholder="/home/user/docker-compose.yml">
+                <div>
+                    <label class="form-label">Configuration Path (Docker/Script)</label>
+                    <input type="text" name="restartPath" placeholder="/home/user/docker-compose.yml" class="form-input">
                 </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Log Type</label>
-                        <select name="logType">
-                            <option value="Standard">Standard (Stdout)</option>
-                            <option value="File">Internal File</option>
+                <div class="grid grid-cols-2 gap-6">
+                    <div>
+                        <label class="form-label">Log Intercept Type</label>
+                        <select name="logType" class="form-input">
+                            <option value="Standard">Stdout Stream</option>
+                            <option value="File">Internal File Dump</option>
                         </select>
                     </div>
-                    <div class="form-group">
-                        <label>External/Internal Log Path</label>
-                        <input type="text" name="logPath" placeholder="/var/log/...">
+                    <div>
+                        <label class="form-label">Absolute Log Path</label>
+                        <input type="text" name="logPath" placeholder="/var/log/..." class="form-input">
                     </div>
                 </div>
 
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save Changes</button>
-                    <button type="button" class="btn btn-secondary" id="deleteBtn" style="background: rgba(255, 110, 132, 0.1); color: var(--error); border-color: rgba(255, 110, 132, 0.2)">Delete Game</button>
+                <div class="flex justify-end gap-4 pt-8 mt-4">
+                    <button type="button" id="deleteBtn" class="px-6 py-2.5 rounded-lg border border-error-dim/40 text-error font-headline font-bold text-xs uppercase tracking-widest hover:bg-error-dim/10 transition-colors mr-auto hidden" onclick="deleteGame(document.getElementById('gameForm').dataset.originalSlug)">Terminate Module</button>
+                    <button type="button" class="px-6 py-2.5 rounded-lg border border-outline-variant/30 text-on-surface font-headline font-bold text-xs uppercase tracking-widest hover:bg-surface-container transition-colors" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="px-8 py-2.5 rounded-lg bg-primary text-on-primary font-headline font-bold text-xs uppercase tracking-widest hover:brightness-110 shadow-[0_0_15px_rgba(154,168,255,0.2)] transition-all">Engage configuration</button>
                 </div>
             </form>
         </div>
     </div>
+</div>
 
-    <script>
-        let currentProjects = [];
-        let logEventSource = null;
+<script>
+    let currentProjects = [];
+    let logEventSource = null;
 
-        async function fetchProjects() {
-            try {
-                const response = await fetch('/api/admin/projects');
-                if (!response.ok) throw new Error('Unauthenticated');
-                currentProjects = await response.json();
-                renderGrid();
-            } catch (err) {
-                window.location.href = '/login.html';
-            }
-        }
-
-        function renderGrid() {
-            const grid = document.getElementById('gamesGrid');
-            grid.innerHTML = currentProjects.map(p => `
-                <div class="game-card">
-                    <span class="status-badge">${p.restartType !== 'None' ? 'Managed' : 'Static'}</span>
-                    <h3>${p.name}</h3>
-                    <p>${p.description || 'No description provided.'}</p>
-                    <div class="card-footer">
-                        <button class="btn btn-secondary btn-sm" onclick="editGame('${p.slug}')">Edit Config</button>
-                        ${p.restartType !== 'None' && p.restartServiceName ? `
-                            <button class="btn btn-primary btn-sm" onclick="restartServer('${p.slug}')">Restart</button>
-                            <button class="btn btn-secondary btn-sm" style="color: var(--tertiary)" onclick="viewLogs('${p.slug}', '${p.name}')">View Logs</button>
-                        ` : ''}
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function openAddModal() {
-            document.getElementById('modalTitle').innerText = 'Add New Game';
-            document.getElementById('gameForm').reset();
-            document.getElementById('gameForm').dataset.mode = 'add';
-            document.getElementById('deleteBtn').style.display = 'none';
-            document.getElementById('gameModal').style.display = 'flex';
-        }
-
-        function editGame(slug) {
-            const game = currentProjects.find(p => p.slug === slug);
-            if (!game) return;
-
-            document.getElementById('modalTitle').innerText = 'Edit Game Configuration';
-            const form = document.getElementById('gameForm');
-            form.dataset.mode = 'edit';
-            form.dataset.originalSlug = slug;
-            document.getElementById('deleteBtn').style.display = 'block';
-            document.getElementById('deleteBtn').onclick = () => deleteGame(slug);
-
-            // Fill form
-            Object.keys(game).forEach(key => {
-                if (form.elements[key]) form.elements[key].value = game[key];
-            });
-
-            document.getElementById('gameModal').style.display = 'flex';
-        }
-
-        async function saveGame(e) {
-            e.preventDefault();
-            const form = e.target;
-            const formData = new FormData(form);
-            const data = Object.fromEntries(formData.entries());
-            
-            // Fix types
-            data.restartType = data.restartType || 'None';
-            data.logType = data.logType || 'Standard';
-
-            const mode = form.dataset.mode;
-            const url = mode === 'add' ? '/api/admin/projects' : `/api/admin/projects/${form.dataset.originalSlug}`;
-            const method = mode === 'add' ? 'POST' : 'PUT';
-
-            try {
-                const res = await fetch(url, {
-                    method: method,
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-                if (res.ok) {
-                    closeModal();
-                    fetchProjects();
-                } else {
-                    const msg = await res.text();
-                    alert('Error: ' + msg);
-                }
-            } catch (err) {
-                alert('Connection error');
-            }
-        }
-
-        async function deleteGame(slug) {
-            if (!confirm(`Are you sure you want to delete ${slug}?`)) return;
-            await fetch(`/api/admin/projects/${slug}`, { method: 'DELETE' });
-            closeModal();
-            fetchProjects();
-        }
-
-        async function restartServer(slug) {
-            if (!confirm(`Trigger restart for ${slug}?`)) return;
-            const res = await fetch(`/api/admin/projects/${slug}/restart`, { method: 'POST' });
-            const msg = await res.text();
-            alert(res.ok ? 'Restart command sent successfully.' : 'Error: ' + msg);
-        }
-
-        function viewLogs(slug, name) {
-            closeLogs(); // close existing
-            document.getElementById('logTitle').innerText = `${name} | Live Logs`;
-            document.getElementById('logOverlay').style.display = 'flex';
-            const content = document.getElementById('logContent');
-            content.innerHTML = '<div class="line" style="color: #666"><i>Connecting to stream...</i></div>';
-
-            logEventSource = new EventSource(`/api/admin/projects/${slug}/logs`);
-            logEventSource.onmessage = (e) => {
-                const line = document.createElement('div');
-                line.className = 'line';
-                line.textContent = e.data;
-                content.appendChild(line);
-                content.scrollTop = content.scrollHeight;
-            };
-            logEventSource.onerror = () => {
-                const line = document.createElement('div');
-                line.className = 'line';
-                line.style.color = '#ff6e84';
-                line.textContent = '--- Disconnected from log stream ---';
-                content.appendChild(line);
-                logEventSource.close();
-            };
-        }
-
-        function closeLogs() {
-            if (logEventSource) {
-                logEventSource.close();
-                logEventSource = null;
-            }
-            document.getElementById('logOverlay').style.display = 'none';
-        }
-
-        function closeModal() { document.getElementById('gameModal').style.display = 'none'; }
-        document.getElementById('gameForm').addEventListener('submit', saveGame);
-
-        async function logout() {
-            await fetch('/api/admin/logout', { method: 'POST' });
+    async function fetchProjects() {
+        try {
+            const response = await fetch('/api/admin/projects');
+            if (!response.ok) throw new Error('Unauthenticated');
+            currentProjects = await response.json();
+            renderGrid();
+        } catch (err) {
             window.location.href = '/login.html';
         }
+    }
 
-        window.onclick = (e) => {
-            if (e.target.classList.contains('modal-backdrop')) closeModal();
-        };
+    function renderGrid() {
+        const grid = document.getElementById('gamesGrid');
+        grid.innerHTML = currentProjects.map(p => `
+            <div class="bg-surface-container-low rounded-xl p-6 border border-transparent hover:border-indigo-500/30 transition-all group relative overflow-hidden flex flex-col">
+                <div class="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div class="flex justify-between items-start mb-4 relative z-10 w-full">
+                    <span class="material-symbols-outlined text-indigo-400 bg-indigo-500/10 p-2 rounded-lg">dns</span>
+                </div>
+                <h3 class="text-2xl font-headline font-bold text-on-surface mb-2 relative z-10">${p.name}</h3>
+                <p class="text-on-surface-variant text-sm tracking-wide mb-8 relative z-10 flex-1 line-clamp-2">${p.description || 'No description provided.'}</p>
+                <div class="flex flex-wrap gap-3 relative z-10 mt-auto pt-4 border-t border-outline-variant/10">
+                    <button class="px-4 py-2 rounded-lg border border-outline-variant/30 text-on-surface font-semibold text-xs transition-colors hover:bg-surface-container-highest uppercase tracking-wider text-center" onclick="editGame('${p.slug}')">Edit Config</button>
+                    ${p.restartType !== 'None' && p.restartServiceName ? `
+                        <button class="px-4 py-2 rounded-lg bg-primary/10 border border-primary/30 text-primary font-semibold text-xs hover:bg-primary/20 hover:border-primary/50 transition-colors uppercase tracking-wider text-center" onclick="restartServer('${p.slug}')">Restart</button>
+                        <button class="px-4 py-2 rounded-lg bg-tertiary/10 border border-tertiary/30 text-tertiary font-semibold text-xs hover:bg-tertiary/20 hover:border-tertiary/50 transition-colors uppercase tracking-wider ml-auto" onclick="viewLogs('${p.slug}', '${p.name}')">Logs</button>
+                    ` : ''}
+                </div>
+            </div>
+        `).join('');
+    }
 
+    function openAddModal() {
+        document.getElementById('modalTitle').innerText = 'Deploy Game Module';
+        document.getElementById('gameForm').reset();
+        document.getElementById('gameForm').dataset.mode = 'add';
+        document.getElementById('deleteBtn').classList.add('hidden');
+        document.getElementById('gameModal').classList.remove('hidden');
+        document.getElementById('gameModal').classList.add('flex');
+    }
+
+    function editGame(slug) {
+        const game = currentProjects.find(p => p.slug === slug);
+        if (!game) return;
+
+        document.getElementById('modalTitle').innerText = 'Modify Core Configuration';
+        const form = document.getElementById('gameForm');
+        form.dataset.mode = 'edit';
+        form.dataset.originalSlug = slug;
+        document.getElementById('deleteBtn').classList.remove('hidden');
+        document.getElementById('deleteBtn').dataset.slug = slug;
+
+        Object.keys(game).forEach(key => {
+            if (form.elements[key]) form.elements[key].value = game[key];
+        });
+
+        document.getElementById('gameModal').classList.remove('hidden');
+        document.getElementById('gameModal').classList.add('flex');
+    }
+
+    async function saveGame(e) {
+        e.preventDefault();
+        const form = e.target;
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+        
+        data.restartType = data.restartType || 'None';
+        data.logType = data.logType || 'Standard';
+
+        const mode = form.dataset.mode;
+        const url = mode === 'add' ? '/api/admin/projects' : `/api/admin/projects/${form.dataset.originalSlug}`;
+        const method = mode === 'add' ? 'POST' : 'PUT';
+
+        try {
+            const res = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            if (res.ok) {
+                closeModal();
+                fetchProjects();
+            } else {
+                const msg = await res.text();
+                alert('Verification Failure: ' + msg);
+            }
+        } catch (err) {
+            alert('Core connection failed.');
+        }
+    }
+
+    async function deleteGame(slug) {
+        if (!confirm(`Are you certain you wish to terminate module [${slug}]? This action cannot be reversed.`)) return;
+        await fetch(`/api/admin/projects/${slug}`, { method: 'DELETE' });
+        closeModal();
         fetchProjects();
-    </script>
-    <script src="/nav.js"></script>
-</body>
-</html>
+    }
+
+    async function restartServer(slug) {
+        if (!confirm(`Engage manual override restart for [${slug}] subsystem?`)) return;
+        const res = await fetch(`/api/admin/projects/${slug}/restart`, { method: 'POST' });
+        const msg = await res.text();
+        alert(res.ok ? 'Restart Protocol initiated successfully.' : 'Error code: ' + msg);
+    }
+
+    function viewLogs(slug, name) {
+        closeLogs();
+        const terminal = document.getElementById('logTerminal');
+        terminal.classList.remove('hidden');
+        // Scroll smoothly to bottom where terminal is
+        terminal.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        
+        document.getElementById('logTitle').innerText = `${name} | LIVE LOG STREAM`;
+        const content = document.getElementById('logContent');
+        content.innerHTML = '<div class="flex gap-4 font-mono text-sm"><span class="text-slate-500">[' + new Date().toLocaleTimeString() + ']</span><span class="text-tertiary">SYSTEM</span><span class="text-tertiary/60">Establishing connection to datastream...</span></div>';
+
+        logEventSource = new EventSource(`/api/admin/projects/${slug}/logs`);
+        logEventSource.onmessage = (e) => {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'flex gap-4 font-mono text-sm';
+            
+            const timeSpan = document.createElement('span');
+            timeSpan.className = 'text-slate-500 shrink-0';
+            timeSpan.textContent = '[' + new Date().toLocaleTimeString() + ']';
+            
+            const txtSpan = document.createElement('span');
+            txtSpan.className = 'text-green-400 break-words flex-1'; // Classic terminal green
+            txtSpan.textContent = e.data;
+
+            wrapper.appendChild(timeSpan);
+            wrapper.appendChild(txtSpan);
+            
+            content.appendChild(wrapper);
+            content.scrollTop = content.scrollHeight;
+        };
+        logEventSource.onerror = () => {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'flex gap-4 font-mono text-sm mt-2';
+            wrapper.innerHTML = '<span class="text-slate-500">[' + new Date().toLocaleTimeString() + ']</span><span class="text-error uppercase">ALERT</span><span class="text-error-dim">Datastream disconnected.</span>';
+            content.appendChild(wrapper);
+            logEventSource.close();
+        };
+    }
+
+    function closeLogs() {
+        if (logEventSource) {
+            logEventSource.close();
+            logEventSource = null;
+        }
+        document.getElementById('logTerminal').classList.add('hidden');
+    }
+
+    function closeModal() { 
+        document.getElementById('gameModal').classList.add('hidden');
+        document.getElementById('gameModal').classList.remove('flex');
+    }
+    document.getElementById('gameForm').addEventListener('submit', saveGame);
+
+    async function logout() {
+        await fetch('/api/admin/logout', { method: 'POST' });
+        window.location.href = '/login.html';
+    }
+
+    window.onclick = (e) => {
+        if (e.target.id === 'gameModal') closeModal();
+    };
+
+    fetchProjects();
+</script>
+</body></html>

@@ -1,41 +1,71 @@
 (async function() {
-    // Add styles for the navigation header
+    // Add styles for the navigation header using the Neon Monolith aesthetic
     const style = document.createElement('style');
+    // Ensure fonts are loaded if this script is injected on older unstyled pages
+    if (!document.querySelector('link[href*="Space+Grotesk"]')) {
+        const link = document.createElement('link');
+        link.href = "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap";
+        link.rel = "stylesheet";
+        document.head.appendChild(link);
+    }
+
     style.textContent = `
         .site-nav {
             position: fixed;
-            top: 1rem;
-            right: 1rem;
+            top: 2rem;
+            right: 2.5rem;
             display: flex;
-            gap: 0.75rem;
+            gap: 1rem;
             z-index: 1000;
+            font-family: 'Space Grotesk', sans-serif;
         }
         .nav-btn {
-            background: rgba(30, 41, 59, 0.7);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(32, 38, 47, 0.4);
             backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: #f8fafc;
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            font-size: 0.875rem;
-            font-weight: 500;
+            border: 1px solid rgba(68, 72, 79, 0.3);
+            color: #f1f3fc;
+            padding: 0.6rem 1.25rem;
+            border-radius: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
             text-decoration: none;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
         .nav-btn:hover {
-            background: rgba(51, 65, 85, 0.9);
-            transform: translateY(-2px);
-            border-color: rgba(99, 102, 241, 0.5);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+            background: rgba(32, 38, 47, 0.9);
+            border-color: rgba(68, 72, 79, 0.8);
+            transform: translateY(-1px);
         }
         .nav-btn-primary {
-            background: rgba(99, 102, 241, 0.8);
-            border-color: rgba(99, 102, 241, 0.3);
+            background: rgba(154, 168, 255, 0.1);
+            border-color: rgba(154, 168, 255, 0.3);
+            color: #9aa8ff;
         }
         .nav-btn-primary:hover {
-            background: rgba(79, 70, 229, 0.9);
+            background: rgba(154, 168, 255, 0.2);
+            border-color: rgba(154, 168, 255, 0.6);
+        }
+        .nav-btn-error {
+            background: rgba(215, 51, 87, 0.1);
+            border-color: rgba(215, 51, 87, 0.3);
+            color: #d73357;
+        }
+        .nav-btn-error:hover {
+            background: rgba(215, 51, 87, 0.2);
+            border-color: rgba(215, 51, 87, 0.6);
+        }
+        
+        @media (max-width: 768px) {
+            .site-nav {
+                top: 1rem;
+                right: 1rem;
+            }
         }
     `;
     document.head.appendChild(style);
@@ -53,15 +83,15 @@
             // Logged In: Show Admin and Logout
             if (window.location.pathname !== '/admin' && window.location.pathname !== '/admin.html') {
                 const adminLink = document.createElement('a');
-                adminLink.href = '/admin';
+                adminLink.href = '/admin.html';
                 adminLink.className = 'nav-btn nav-btn-primary';
-                adminLink.textContent = 'Admin Dashboard';
+                adminLink.innerHTML = 'Admin Dashboard';
                 navContainer.appendChild(adminLink);
             }
             
             const logoutBtn = document.createElement('button');
-            logoutBtn.className = 'nav-btn';
-            logoutBtn.textContent = 'Sign Out';
+            logoutBtn.className = 'nav-btn nav-btn-error';
+            logoutBtn.innerHTML = 'Sign Out';
             logoutBtn.onclick = async () => {
                 await fetch('/api/admin/logout', { method: 'POST' });
                 window.location.href = '/';
@@ -71,9 +101,9 @@
         } else {
             // Logged Out: Show Login
             const loginLink = document.createElement('a');
-            loginLink.href = '/login';
+            loginLink.href = '/login.html';
             loginLink.className = 'nav-btn';
-            loginLink.textContent = 'Sign In';
+            loginLink.innerHTML = 'Sign In';
             navContainer.appendChild(loginLink);
         }
 
@@ -82,7 +112,7 @@
             const homeLink = document.createElement('a');
             homeLink.href = '/';
             homeLink.className = 'nav-btn';
-            homeLink.textContent = 'Home Hub';
+            homeLink.innerHTML = 'Home Hub';
             navContainer.prepend(homeLink);
         }
 

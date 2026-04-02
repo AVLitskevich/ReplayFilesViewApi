@@ -1,232 +1,147 @@
 <!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Projects Dashboard — Replay Hub</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg-main: #0f172a;
-            --bg-card: #1e293b;
-            --bg-card-hover: #334155;
-            --primary: #6366f1;
-            --primary-hover: #4f46e5;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --accent-green: #22c55e;
-            --accent-purple: #a855f7;
-            --accent-blue: #3b82f6;
-            --radius: 12px;
-            --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', -apple-system, sans-serif;
-            background-color: var(--bg-main);
-            color: var(--text-main);
-            line-height: 1.5;
-            min-height: 100vh;
-            padding: 2rem 1rem;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        header {
-            margin-bottom: 3rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        h1 {
-            font-size: 2rem;
-            font-weight: 700;
-            letter-spacing: -0.025em;
-            background: linear-gradient(to right, #fff, #94a3b8);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        #loading {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 5rem 0;
-            color: var(--text-muted);
-        }
-
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid rgba(99, 102, 241, 0.1);
-            border-top-color: var(--primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 1rem;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        #error {
-            background-color: rgba(239, 68, 68, 0.1);
-            border: 1px solid rgba(239, 68, 68, 0.2);
-            color: #fca5a5;
-            padding: 1rem;
-            border-radius: var(--radius);
-            margin-bottom: 2rem;
-            display: none;
-        }
-
-        #empty-message {
-            text-align: center;
-            padding: 5rem 0;
-            color: var(--text-muted);
-            font-size: 1.125rem;
-            display: none;
-        }
-
-        .projects-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 1.5rem;
-            display: none;
-        }
-
-        .projects-grid.visible {
-            display: grid;
-        }
-
-        .project-card {
-            background-color: var(--bg-card);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: var(--radius);
-            padding: 1.75rem;
-            transition: var(--transition);
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        }
-
-        .project-card:hover {
-            transform: translateY(-4px);
-            background-color: var(--bg-card-hover);
-            border-color: rgba(255, 255, 255, 0.1);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
-        }
-
-        .project-card h2 {
-            font-size: 1.25rem;
-            font-weight: 600;
-            margin-bottom: 0.75rem;
-            color: var(--text-main);
-        }
-
-        .project-card p {
-            color: var(--text-muted);
-            font-size: 0.9375rem;
-            margin-bottom: 2rem;
-            flex-grow: 1;
-            line-height: 1.6;
-        }
-
-        .project-actions {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-            gap: 0.75rem;
-        }
-
-        .btn {
-            padding: 0.625rem 1rem;
-            border-radius: 8px;
-            font-size: 0.875rem;
-            font-weight: 500;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            transition: var(--transition);
-            text-align: center;
-        }
-
-        .btn-play {
-            background-color: var(--accent-green);
-            color: #064e3b;
-        }
-
-        .btn-play:hover {
-            background-color: #16a34a;
-            transform: scale(1.02);
-        }
-
-        .btn-replays {
-            background-color: var(--accent-blue);
-            color: #eff6ff;
-        }
-
-        .btn-replays:hover {
-            background-color: #2563eb;
-            transform: scale(1.02);
-        }
-
-        .btn-viewer {
-            background-color: var(--accent-purple);
-            color: #faf5ff;
-        }
-
-        .btn-viewer:hover {
-            background-color: #9333ea;
-            transform: scale(1.02);
-        }
-
-        @media (max-width: 640px) {
-            h1 { font-size: 1.5rem; }
-            .projects-grid { grid-template-columns: 1fr; }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SKILLCADE // REPLAY HUB</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "outline": "#72757d",
+            "on-surface-variant": "#a8abb3",
+            "on-surface": "#f1f3fc",
+            "surface-tint": "#9aa8ff",
+            "on-secondary-fixed-variant": "#6139a3",
+            "primary-container": "#8c9bf3",
+            "primary-fixed": "#96a5ff",
+            "secondary-fixed-dim": "#d2b7ff",
+            "on-secondary": "#330070",
+            "background": "#0a0e14",
+            "primary": "#9aa8ff",
+            "on-primary-container": "#00156d",
+            "primary-fixed-dim": "#8998f0",
+            "on-background": "#f1f3fc",
+            "tertiary-fixed": "#58e7fb",
+            "surface-container-highest": "#20262f",
+            "on-primary-fixed-variant": "#1b2c7f",
+            "tertiary-container": "#58e7fb",
+            "surface": "#0a0e14",
+            "secondary-dim": "#b189f8",
+            "surface-variant": "#20262f",
+            "outline-variant": "#44484f",
+            "on-error": "#490013",
+            "on-error-container": "#ffb2b9",
+            "surface-bright": "#262c36",
+            "surface-container": "#151a21",
+            "tertiary": "#98f0ff",
+            "on-secondary-fixed": "#431585",
+            "on-tertiary-container": "#00515b",
+            "on-tertiary-fixed-variant": "#005b66",
+            "on-tertiary-fixed": "#003c44",
+            "surface-container-lowest": "#000000",
+            "inverse-surface": "#f8f9ff",
+            "tertiary-fixed-dim": "#45d8ed",
+            "error-container": "#a70138",
+            "on-primary": "#122479",
+            "error": "#ff6e84",
+            "surface-container-high": "#1b2028",
+            "inverse-on-surface": "#51555c",
+            "primary-dim": "#8998f0",
+            "secondary-fixed": "#ddc8ff",
+            "secondary": "#b78efe",
+            "on-tertiary": "#005b65",
+            "error-dim": "#d73357",
+            "on-secondary-container": "#dcc7ff",
+            "surface-dim": "#0a0e14",
+            "secondary-container": "#572e99",
+            "on-primary-fixed": "#00083f",
+            "surface-container-low": "#0f141a",
+            "tertiary-dim": "#45d8ed",
+            "inverse-primary": "#4958ac"
+          },
+          fontFamily: {
+            "headline": ["Space Grotesk"],
+            "body": ["Manrope"],
+            "label": ["Manrope"]
+          },
+          borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+        },
+      },
+    }
+</script>
+<style>
+    body {
+      background-color: #0a0e14;
+      font-family: 'Manrope', sans-serif;
+      color: #f1f3fc;
+    }
+    .hex-grid {
+      background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0l25.98 15v30L30 60 4.02 45V15z' fill-rule='evenodd' stroke='%2320262f' stroke-width='1' fill='none' opacity='0.2'/%3E%3C/svg%3E");
+    }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+    }
+    .loader {
+      border: 3px solid rgba(154, 168, 255, 0.1);
+      border-top-color: #9aa8ff;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+</style>
 </head>
-<body>
-    <div class="container">
-        <header>
-            <h1>Replay Hub</h1>
+<body class="bg-background text-on-background min-h-screen relative overflow-x-hidden">
+    <!-- Hexagonal Background Texture -->
+    <div class="fixed inset-0 hex-grid pointer-events-none opacity-40"></div>
+
+    <main class="flex-1 flex flex-col min-h-screen relative z-10">
+        <!-- TopAppBar -->
+        <header class="w-full h-24 flex items-center px-8 md:px-16 z-20">
+            <div class="flex items-center gap-4 mt-6">
+                <span class="material-symbols-outlined text-indigo-400" style="font-variation-settings: 'FILL' 1;">hexagon</span>
+                <h2 class="text-2xl font-black text-white font-['Space_Grotesk'] uppercase tracking-[0.2em]">SKILLCADE HUB</h2>
+            </div>
         </header>
 
-        <div id="error"></div>
+        <!-- Content Canvas -->
+        <div class="px-8 mt-16 md:px-16 pb-20 flex-1 flex flex-col w-full max-w-7xl mx-auto">
+            
+            <section class="mb-12">
+                <h1 class="text-4xl font-headline font-bold text-on-surface">Available Modules</h1>
+            </section>
 
-        <div id="loading">
-            <div class="spinner"></div>
-            <p>Scanning projects...</p>
+            <div id="error" class="hidden bg-error-container/20 border border-error-dim/20 text-error-dim p-4 rounded-xl mb-8 text-sm font-headline tracking-wide uppercase"></div>
+
+            <div id="loading" class="flex flex-col items-center justify-center py-20 text-on-surface-variant">
+                <div class="loader mb-4"></div>
+                <p class="font-headline tracking-widest uppercase text-xs">Scanning Matrix Projects...</p>
+            </div>
+
+            <div id="empty-message" class="hidden text-center py-20 text-on-surface-variant text-sm font-headline tracking-widest uppercase">
+                No active projects deployed.
+            </div>
+
+            <div id="projects-grid" class="hidden grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
         </div>
-
-        <div id="empty-message">No projects found in the workspace</div>
-
-        <div id="projects-grid" class="projects-grid"></div>
-    </div>
+    </main>
 
     <script>
         function showError(message) {
             const errorDiv = document.getElementById('error');
             errorDiv.textContent = message;
-            errorDiv.style.display = 'block';
+            errorDiv.classList.remove('hidden');
         }
 
         function hideLoading() {
-            document.getElementById('loading').style.display = 'none';
+            document.getElementById('loading').classList.add('hidden');
         }
 
         async function loadProjects() {
@@ -241,14 +156,14 @@
                 hideLoading();
 
                 if (!data.projects || data.projects.length === 0) {
-                    document.getElementById('empty-message').style.display = 'block';
+                    document.getElementById('empty-message').classList.remove('hidden');
                     return;
                 }
 
                 displayProjects(data.projects);
             } catch (error) {
                 hideLoading();
-                showError('Failed to synchronize: ' + error.message);
+                showError('Failed to synchronize array: ' + error.message);
                 console.error('API Error:', error);
             }
         }
@@ -258,47 +173,35 @@
             grid.innerHTML = '';
 
             projects.forEach(project => {
-                const card = document.createElement('div');
-                card.className = 'project-card';
+                const playFragment = project.webGLUrl 
+                    ? `<a href="/${encodeURIComponent(project.slug)}/play" class="flex-1 min-w-[30%] px-4 py-2 rounded-lg bg-primary/10 border border-primary/30 text-primary font-semibold text-xs hover:bg-primary/20 hover:border-primary/50 transition-colors uppercase tracking-wider text-center flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[16px]">play_arrow</span> Launch</a>` 
+                    : '';
 
-                const title = document.createElement('h2');
-                title.textContent = project.name;
+                const viewerFragment = project.replayViewerUrl 
+                    ? `<a href="/${encodeURIComponent(project.slug)}/viewer" class="flex-1 min-w-[30%] px-4 py-2 rounded-lg bg-secondary/10 border border-secondary/30 text-secondary font-semibold text-xs hover:bg-secondary/20 hover:border-secondary/50 transition-colors uppercase tracking-wider text-center flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[16px]">visibility</span> Viewer</a>` 
+                    : '';
 
-                const desc = document.createElement('p');
-                desc.textContent = project.description || 'No description provided for this project.';
+                const replaysFragment = `<a href="/${encodeURIComponent(project.slug)}/replays" class="flex-1 min-w-[30%] px-4 py-2 rounded-lg bg-tertiary/10 border border-tertiary/30 text-tertiary font-semibold text-xs hover:bg-tertiary/20 hover:border-tertiary/50 transition-colors uppercase tracking-wider text-center flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[16px]">library_books</span> Replays</a>`;
 
-                const actions = document.createElement('div');
-                actions.className = 'project-actions';
-
-                if (project.webGLUrl) {
-                    const playLink = document.createElement('a');
-                    playLink.href = `/${encodeURIComponent(project.slug)}/play`;
-                    playLink.className = 'btn btn-play';
-                    playLink.textContent = 'Launch';
-                    actions.appendChild(playLink);
-                }
-
-                if (project.replayViewerUrl) {
-                    const viewerLink = document.createElement('a');
-                    viewerLink.href = `/${encodeURIComponent(project.slug)}/viewer`;
-                    viewerLink.className = 'btn btn-viewer';
-                    viewerLink.textContent = 'Viewer';
-                    actions.appendChild(viewerLink);
-                }
-
-                const replaysLink = document.createElement('a');
-                replaysLink.href = `/${encodeURIComponent(project.slug)}/replays`;
-                replaysLink.className = 'btn btn-replays';
-                replaysLink.textContent = 'Replays';
-                actions.appendChild(replaysLink);
-
-                card.appendChild(title);
-                card.appendChild(desc);
-                card.appendChild(actions);
-                grid.appendChild(card);
+                grid.innerHTML += `
+                <div class="bg-surface-container-low rounded-xl p-6 border border-transparent hover:border-indigo-500/30 transition-all group relative flex flex-col overflow-hidden">
+                    <div class="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div class="flex justify-between items-start mb-4 relative z-10 w-full">
+                        <span class="material-symbols-outlined text-indigo-400 bg-indigo-500/10 p-2 rounded-lg">dns</span>
+                    </div>
+                    <h3 class="text-2xl font-headline font-bold text-on-surface mb-2 relative z-10">${project.name}</h3>
+                    <p class="text-on-surface-variant text-sm tracking-wide mb-8 relative z-10 flex-1 line-clamp-2">${project.description || 'No description provided.'}</p>
+                    <div class="flex flex-wrap gap-3 relative z-10 mt-auto pt-4 border-t border-outline-variant/10">
+                        ${playFragment}
+                        ${viewerFragment}
+                        ${replaysFragment}
+                    </div>
+                </div>
+                `;
             });
 
-            grid.classList.add('visible');
+            grid.classList.remove('hidden');
+            grid.classList.add('grid');
         }
 
         document.addEventListener('DOMContentLoaded', loadProjects);

@@ -1,280 +1,217 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login | Skillcade Admin</title>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&family=Manrope:wght@400;600&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --background: #0a0e14;
-            --surface: #151a21;
-            --primary: #9aa8ff;
-            --secondary: #b78efe;
-            --text: #f1f3fc;
-            --error: #ff6e84;
-            --glass: rgba(21, 26, 33, 0.7);
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NEON MONOLITH | Secure Access</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Manrope:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "secondary": "#b78efe",
+                "on-secondary-container": "#dcc7ff",
+                "primary-dim": "#8998f0",
+                "background": "#0a0e14",
+                "on-primary-container": "#00156d",
+                "on-error-container": "#ffb2b9",
+                "tertiary-fixed-dim": "#45d8ed",
+                "primary-container": "#8c9bf3",
+                "on-surface-variant": "#a8abb3",
+                "on-surface": "#f1f3fc",
+                "on-error": "#490013",
+                "on-secondary-fixed": "#431585",
+                "on-secondary": "#330070",
+                "on-tertiary-container": "#00515b",
+                "on-secondary-fixed-variant": "#6139a3",
+                "on-primary-fixed-variant": "#1b2c7f",
+                "tertiary-container": "#58e7fb",
+                "surface-tint": "#9aa8ff",
+                "surface-container-high": "#1b2028",
+                "outline": "#72757d",
+                "on-tertiary": "#005b65",
+                "surface-container-highest": "#20262f",
+                "error-dim": "#d73357",
+                "on-background": "#f1f3fc",
+                "secondary-container": "#572e99",
+                "inverse-primary": "#4958ac",
+                "primary-fixed-dim": "#8998f0",
+                "surface": "#0a0e14",
+                "inverse-surface": "#f8f9ff",
+                "primary-fixed": "#96a5ff",
+                "surface-variant": "#20262f",
+                "on-primary": "#122479",
+                "on-primary-fixed": "#00083f",
+                "secondary-dim": "#b189f8",
+                "inverse-on-surface": "#51555c",
+                "secondary-fixed-dim": "#d2b7ff",
+                "error": "#ff6e84",
+                "surface-bright": "#262c36",
+                "surface-container": "#151a21",
+                "tertiary-dim": "#45d8ed",
+                "surface-container-lowest": "#000000",
+                "primary": "#9aa8ff",
+                "surface-dim": "#0a0e14",
+                "tertiary-fixed": "#58e7fb",
+                "on-tertiary-fixed": "#003c44",
+                "tertiary": "#98f0ff",
+                "surface-container-low": "#0f141a",
+                "error-container": "#a70138",
+                "secondary-fixed": "#ddc8ff",
+                "outline-variant": "#44484f",
+                "on-tertiary-fixed-variant": "#005b66"
+              },
+              fontFamily: {
+                "headline": ["Space Grotesk"],
+                "body": ["Manrope"],
+                "label": ["Manrope"]
+              },
+              borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+            },
+          },
         }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
         }
-
-        body {
-            font-family: 'Manrope', sans-serif;
-            background: var(--background);
-            background-image: 
-                radial-gradient(circle at 20% 20%, rgba(154, 168, 255, 0.05) 0%, transparent 40%),
-                radial-gradient(circle at 80% 80%, rgba(183, 142, 254, 0.05) 0%, transparent 40%);
-            color: var(--text);
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
+        .hex-bg {
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0l25.98 15v30L30 60 4.02 45V15z' fill-opacity='0.05' fill='%239aa8ff' fill-rule='evenodd'/%3E%3C/svg%3E");
         }
-
-        .login-container {
-            width: 100%;
-            max-width: 400px;
-            padding: 20px;
-            position: relative;
-        }
-
         .glass-card {
-            background: var(--glass);
+            background: rgba(15, 20, 26, 0.6);
             backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 24px;
-            padding: 40px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            animation: fadeIn 0.8s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .logo-area {
-            text-align: center;
-            margin-bottom: 32px;
-        }
-
-        .hex-logo {
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, var(--secondary), var(--primary));
-            clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-family: 'Space Grotesk', sans-serif;
-            font-weight: 700;
-            font-size: 24px;
-            color: #0a0e14;
-            margin-bottom: 16px;
-            box-shadow: 0 0 20px rgba(183, 142, 254, 0.3);
-        }
-
-        h1 {
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: 24px;
-            font-weight: 500;
-            letter-spacing: -0.5px;
-            margin-bottom: 8px;
-        }
-
-        p.subtitle {
-            color: #a8abb3;
-            font-size: 14px;
-            margin-bottom: 32px;
-        }
-
-        .form-group {
-            margin-bottom: 24px;
-        }
-
-        label {
-            display: block;
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #a8abb3;
-            margin-bottom: 8px;
-            font-weight: 600;
-        }
-
-        input {
-            width: 100%;
-            background: rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 14px 16px;
-            color: white;
-            font-family: inherit;
-            font-size: 15px;
-            transition: all 0.3s ease;
-        }
-
-        input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 4px rgba(154, 168, 255, 0.1);
-            background: rgba(0, 0, 0, 0.3);
-        }
-
-        button.btn-primary {
-            width: 100%;
-            background: linear-gradient(90deg, var(--secondary), var(--primary));
-            border: none;
-            border-radius: 12px;
-            padding: 16px;
-            color: #0a0e14;
-            font-weight: 700;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 8px;
-        }
-
-        button.btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(183, 142, 254, 0.3);
-            filter: brightness(1.1);
-        }
-
-        button.btn-primary:active {
-            transform: translateY(0);
-        }
-
-        .error-message {
-            background: rgba(255, 110, 132, 0.1);
-            color: var(--error);
-            padding: 12px;
-            border-radius: 8px;
-            font-size: 13px;
-            margin-bottom: 20px;
-            display: none;
-            text-align: center;
-            border: 1px solid rgba(255, 110, 132, 0.2);
-        }
-
-        .footer-links {
-            text-align: center;
-            margin-top: 32px;
-            font-size: 13px;
-            color: #a8abb3;
-        }
-
-        .footer-links a {
-            color: var(--primary);
-            text-decoration: none;
-            margin: 0 8px;
-        }
-
-        .footer-links a:hover {
-            text-decoration: underline;
-        }
-
-        .password-toggle {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-top: 12px;
-            cursor: pointer;
-            user-select: none;
-        }
-
-        .password-toggle input[type="checkbox"] {
-            width: 16px;
-            height: 16px;
-            cursor: pointer;
-            accent-color: var(--primary);
-        }
-
-        .password-toggle label {
-            margin-bottom: 0;
-            font-size: 13px;
-            color: #a8abb3;
-            cursor: pointer;
-            text-transform: none;
-            letter-spacing: normal;
         }
     </style>
-</head>
-<body>
-    <div class="login-container">
-        <div class="glass-card">
-            <div class="logo-area">
-                <div class="hex-logo">S</div>
-                <h1>Skillcade Admin</h1>
-                <p class="subtitle">Secure login for game management</p>
-            </div>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body min-h-screen flex items-center justify-center overflow-hidden hex-bg">
+<!-- Atmospheric Background Elements -->
+<div class="fixed inset-0 pointer-events-none">
+<div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px]"></div>
+<div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-secondary/10 rounded-full blur-[120px]"></div>
+</div>
+<!-- Main Content Canvas -->
+<main class="relative z-10 w-full max-w-[1440px] px-6 flex flex-col items-center">
+<!-- Top Branding Anchor -->
+<header class="mb-12 flex flex-col items-center">
+<div class="flex items-center gap-3 mb-2">
+<div class="w-10 h-10 bg-gradient-to-tr from-secondary to-primary rounded-xl flex items-center justify-center rotate-45 shadow-[0_0_20px_rgba(154,168,255,0.3)]">
+<span class="material-symbols-outlined text-on-primary-fixed -rotate-45" style="font-variation-settings: 'FILL' 1;">terminal</span>
+</div>
+<h1 class="font-headline text-2xl font-bold tracking-[0.3em] text-on-surface">Skillcade Admin</h1>
+</div>
+<div class="h-[1px] w-12 bg-outline-variant/30"></div>
+</header>
+<!-- Login Container -->
+<section class="w-full max-w-md">
+<div class="glass-card rounded-xl border border-outline-variant/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] p-10 relative overflow-hidden">
+<!-- Subtle Gradient Glow behind content -->
+<div class="absolute top-0 right-0 w-32 h-32 bg-secondary/5 blur-[50px]"></div>
+<!-- Form Header -->
+<div class="mb-10">
+<h2 class="font-headline text-3xl font-bold tracking-tight text-on-surface mb-2">Admin Access</h2>
+</div>
 
-            <div id="error-message" class="error-message"></div>
+<div id="error-message" class="hidden bg-error-container/20 text-error-dim border border-error-dim/20 rounded-xl p-3 mb-6 text-sm font-medium text-center"></div>
 
-            <form id="login-form">
-                <div class="form-group">
-                    <label for="username">Username</label>
-                    <input type="text" id="username" name="username" required placeholder="Enter your username">
-                </div>
-                <div class="form-group">
-                    <label for="password">Password</label>
-                    <input type="password" id="password" name="password" required placeholder="••••••••">
-                    <div class="password-toggle">
-                        <input type="checkbox" id="show-password">
-                        <label for="show-password">Show Password</label>
-                    </div>
-                </div>
-                <button type="submit" id="login-button" class="btn-primary">Sign In</button>
-            </form>
-        </div>
-        <div class="login-footer">
-            <p>&copy; 2026 Skillcade. All rights reserved.</p>
-        </div>
-    </div>
+<!-- Form Fields -->
+<form id="login-form" class="space-y-6">
+<div class="space-y-2">
+<label class="block text-xs font-headline font-bold uppercase tracking-widest text-on-surface-variant ml-1">Username</label>
+<div class="relative group">
+<div class="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-on-surface-variant group-focus-within:text-primary transition-colors text-lg">account_circle</span>
+</div>
+<input id="username" name="username" required class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-xl py-4 pl-12 pr-4 text-on-surface placeholder:text-on-surface-variant/40 focus:ring-0 focus:border-primary/50 focus:bg-surface-container-low transition-all outline-none" placeholder="Root ID" type="text"/>
+</div>
+</div>
+<div class="space-y-2">
+<label class="block text-xs font-headline font-bold uppercase tracking-widest text-on-surface-variant ml-1">Keyphrase</label>
+<div class="relative group">
+<div class="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-on-surface-variant group-focus-within:text-primary transition-colors text-lg">lock</span>
+</div>
+<input id="password" name="password" required class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-xl py-4 pl-12 pr-12 text-on-surface placeholder:text-on-surface-variant/40 focus:ring-0 focus:border-primary/50 focus:bg-surface-container-low transition-all outline-none" placeholder="••••••••••••" type="password"/>
+<div class="absolute inset-y-0 right-4 flex items-center">
+<button id="show-password-btn" class="text-on-surface-variant hover:text-on-surface transition-colors" type="button">
+<span class="material-symbols-outlined text-lg">visibility</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Login Button -->
+<button id="login-button" class="group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-secondary to-primary p-[1px] transition-all hover:scale-[1.02] active:scale-95 shadow-[0_0_30px_rgba(183,142,254,0.15)]" type="submit">
+<div class="bg-surface-container-highest/10 group-hover:bg-transparent transition-colors py-4 flex items-center justify-center gap-3">
+<span class="font-headline font-bold text-on-primary tracking-widest uppercase">Login</span>
+<span class="material-symbols-outlined text-on-primary text-xl">arrow_forward</span>
+</div>
+</button>
+</form>
 
-    <script>
-        const loginForm = document.getElementById('login-form');
-        const loginButton = document.getElementById('login-button');
-        const errorMessage = document.getElementById('error-message');
-        const showPasswordCheckbox = document.getElementById('show-password');
-        const passwordInput = document.getElementById('password');
+</div>
 
-        // Toggle Password Visibility
-        showPasswordCheckbox.addEventListener('change', () => {
-            passwordInput.type = showPasswordCheckbox.checked ? 'text' : 'password';
-        });
+</section>
+</main>
+<!-- Decorative Hex Motif -->
+<div class="fixed bottom-10 right-10 opacity-10 pointer-events-none">
+<svg class="text-primary fill-current" height="200" viewbox="0 0 100 100" width="200">
+<path d="M50 0 L93.3 25 L93.3 75 L50 100 L6.7 75 L6.7 25 Z" fill="none" stroke="currentColor" stroke-width="0.5"></path>
+<path d="M50 10 L84.6 30 L84.6 70 L50 90 L15.4 70 L15.4 30 Z" fill="none" opacity="0.5" stroke="currentColor" stroke-width="0.2"></path>
+</svg>
+</div>
 
-        loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            errorMessage.style.display = 'none';
+<script>
+    const loginForm = document.getElementById('login-form');
+    const loginButton = document.getElementById('login-button');
+    const errorMessage = document.getElementById('error-message');
+    const showPasswordBtn = document.getElementById('show-password-btn');
+    const passwordInput = document.getElementById('password');
 
-            const formData = new FormData(e.target);
-            const data = Object.fromEntries(formData.entries());
+    showPasswordBtn.addEventListener('click', () => {
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            showPasswordBtn.querySelector('span').textContent = 'visibility_off';
+        } else {
+            passwordInput.type = 'password';
+            showPasswordBtn.querySelector('span').textContent = 'visibility';
+        }
+    });
 
-            try {
-                const response = await fetch('/api/admin/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        errorMessage.classList.add('hidden');
+        errorMessage.classList.remove('block');
 
-                if (response.ok) {
-                    window.location.href = '/admin';
-                } else {
-                    errorMessage.textContent = 'Invalid username or password';
-                    errorMessage.style.display = 'block';
-                }
-            } catch (err) {
-                errorMessage.textContent = 'Connection error. Please try again.';
-                errorMessage.style.display = 'block';
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData.entries());
+
+        try {
+            const response = await fetch('/api/admin/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                window.location.href = '/admin';
+            } else {
+                errorMessage.textContent = 'Invalid username or password';
+                errorMessage.classList.remove('hidden');
+                errorMessage.classList.add('block');
             }
-        });
-    </script>
-</body>
-</html>
+        } catch (err) {
+            errorMessage.textContent = 'Connection error. Please try again.';
+            errorMessage.classList.remove('hidden');
+            errorMessage.classList.add('block');
+        }
+    });
+</script>
+</body></html>
