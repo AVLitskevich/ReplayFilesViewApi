@@ -138,7 +138,7 @@
 
         async function getBuildVersion(url) {
             try {
-                const resp = await fetch(url, { method: 'HEAD' });
+                const resp = await fetch(url, { method: 'HEAD', cache: 'no-store' });
                 const version = resp.headers.get('Last-Modified') || resp.headers.get('ETag');
                 return '?v=' + encodeURIComponent(version || Date.now());
             } catch {
