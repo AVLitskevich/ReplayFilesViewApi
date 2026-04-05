@@ -165,13 +165,17 @@
                 document.title = project.name;
                 document.getElementById('project-name').textContent = project.name;
 
-                if (!project.webGLUrl) {
+                const gameUrl = project.clientBuildUrl || project.webGLUrl;
+                if (!gameUrl) {
                     showError('No game URL configured for this project');
                     return;
                 }
 
                 const frame = document.getElementById('game-frame');
-                frame.src = project.webGLUrl + await getBuildVersion(project.webGLUrl);
+                // Local builds have server-side Cache-Control: no-cache, no client-side bust needed
+                frame.src = project.clientBuildUrl
+                    ? gameUrl
+                    : gameUrl + await getBuildVersion(gameUrl);
                 document.getElementById('loading').style.display = 'none';
                 frame.classList.add('visible');
             } catch (error) {

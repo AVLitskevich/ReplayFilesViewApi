@@ -174,12 +174,12 @@
             grid.innerHTML = '';
 
             projects.forEach(project => {
-                const playFragment = project.webGLUrl 
-                    ? `<a href="/${encodeURIComponent(project.slug)}/play" class="flex-1 min-w-[30%] px-4 py-2 rounded-lg bg-primary/10 border border-primary/30 text-primary font-semibold text-xs hover:bg-primary/20 hover:border-primary/50 transition-colors uppercase tracking-wider text-center flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[16px]">play_arrow</span> Launch</a>` 
+                const playFragment = (project.webGLUrl || project.clientBuildUrl)
+                    ? `<a href="/${encodeURIComponent(project.slug)}/play" class="flex-1 min-w-[30%] px-4 py-2 rounded-lg bg-primary/10 border border-primary/30 text-primary font-semibold text-xs hover:bg-primary/20 hover:border-primary/50 transition-colors uppercase tracking-wider text-center flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[16px]">play_arrow</span> Launch</a>`
                     : '';
 
-                const viewerFragment = project.replayViewerUrl 
-                    ? `<a href="/${encodeURIComponent(project.slug)}/viewer" class="flex-1 min-w-[30%] px-4 py-2 rounded-lg bg-secondary/10 border border-secondary/30 text-secondary font-semibold text-xs hover:bg-secondary/20 hover:border-secondary/50 transition-colors uppercase tracking-wider text-center flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[16px]">visibility</span> Viewer</a>` 
+                const viewerFragment = (project.replayViewerUrl || project.viewerBuildUrl)
+                    ? `<a href="/${encodeURIComponent(project.slug)}/viewer" class="flex-1 min-w-[30%] px-4 py-2 rounded-lg bg-secondary/10 border border-secondary/30 text-secondary font-semibold text-xs hover:bg-secondary/20 hover:border-secondary/50 transition-colors uppercase tracking-wider text-center flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[16px]">visibility</span> Viewer</a>`
                     : '';
 
                 const replaysFragment = `<a href="/${encodeURIComponent(project.slug)}/replays" class="flex-1 min-w-[30%] px-4 py-2 rounded-lg bg-tertiary/10 border border-tertiary/30 text-tertiary font-semibold text-xs hover:bg-tertiary/20 hover:border-tertiary/50 transition-colors uppercase tracking-wider text-center flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[16px]">library_books</span> Replays</a>`;

@@ -5,7 +5,9 @@ public record ProjectInfo(
     string Name,
     string Description,
     string WebGLUrl,
-    string? ReplayViewerUrl
+    string? ReplayViewerUrl,
+    string? ClientBuildUrl,
+    string? ViewerBuildUrl
 );
 
 public record ProjectListResponse(

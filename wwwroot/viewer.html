@@ -157,13 +157,17 @@
                 document.title = project.name + ' — Viewer';
                 document.getElementById('project-name').textContent = project.name + ' — Replay Viewer';
 
-                if (!project.replayViewerUrl) {
+                const viewerUrl = project.viewerBuildUrl || project.replayViewerUrl;
+                if (!viewerUrl) {
                     showError('No replay viewer configured for this project');
                     return;
                 }
 
                 const frame = document.getElementById('viewer-frame');
-                frame.src = project.replayViewerUrl + await getBuildVersion(project.replayViewerUrl);
+                // Local builds have server-side Cache-Control: no-cache, no client-side bust needed
+                frame.src = project.viewerBuildUrl
+                    ? viewerUrl
+                    : viewerUrl + await getBuildVersion(viewerUrl);
                 document.getElementById('loading').style.display = 'none';
                 frame.classList.add('visible');
             } catch (error) {

@@ -25,6 +25,7 @@ builder.Services.AddSingleton<IProjectService, ProjectService>();
 builder.Services.AddSingleton<IReplayFileService, ReplayFileService>();
 builder.Services.AddSingleton<IAuthService, AuthService>();
 builder.Services.AddSingleton<ISystemService, SystemService>();
+builder.Services.AddSingleton<IWebGLBuildService, WebGLBuildService>();
 
 // Authentication
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -86,21 +87,29 @@ app.UseAuthorization();
 var api = app.MapGroup("/api");
 
 // GET /api/projects - list all projects
-api.MapGet("/projects", (IProjectService projectService) =>
+api.MapGet("/projects", (IProjectService projectService, IWebGLBuildService buildService) =>
 {
     var projects = projectService.GetAll()
-        .Select(p => new ProjectInfo(p.Slug, p.Name, p.Description, p.WebGLUrl, string.IsNullOrEmpty(p.ReplayViewerUrl) ? null : p.ReplayViewerUrl))
+        .Select(p => new ProjectInfo(
+            p.Slug, p.Name, p.Description, p.WebGLUrl,
+            string.IsNullOrEmpty(p.ReplayViewerUrl) ? null : p.ReplayViewerUrl,
+            buildService.BuildPathExists(p.ClientBuildPath) ? $"/api/projects/{p.Slug}/client/index.html" : null,
+            buildService.BuildPathExists(p.ReplayViewerBuildPath) ? $"/api/projects/{p.Slug}/viewer-build/index.html" : null))
         .ToList();
     return Results.Ok(new ProjectListResponse(projects));
 }).WithName("GetProjects");
 
 // GET /api/projects/{slug} - get single project
-api.MapGet("/projects/{slug}", (string slug, IProjectService projectService) =>
+api.MapGet("/projects/{slug}", (string slug, IProjectService projectService, IWebGLBuildService buildService) =>
 {
     var project = projectService.GetBySlug(slug);
     if (project == null) return Results.NotFound();
 
-    return Results.Ok(new ProjectInfo(project.Slug, project.Name, project.Description, project.WebGLUrl, string.IsNullOrEmpty(project.ReplayViewerUrl) ? null : project.ReplayViewerUrl));
+    return Results.Ok(new ProjectInfo(
+        project.Slug, project.Name, project.Description, project.WebGLUrl,
+        string.IsNullOrEmpty(project.ReplayViewerUrl) ? null : project.ReplayViewerUrl,
+        buildService.BuildPathExists(project.ClientBuildPath) ? $"/api/projects/{project.Slug}/client/index.html" : null,
+        buildService.BuildPathExists(project.ReplayViewerBuildPath) ? $"/api/projects/{project.Slug}/viewer-build/index.html" : null));
 }).WithName("GetProject");
 
 // GET /api/projects/{slug}/replays - list project replays
@@ -125,6 +134,42 @@ api.MapGet("/projects/{slug}/replays/{fileName}", (string slug, string fileName,
     var fileStream = File.OpenRead(fullPath);
     return Results.File(fileStream, "application/octet-stream", fileName);
 }).WithName("DownloadReplay");
+
+// GET /api/projects/{slug}/client/{**filePath} - serve WebGL client build files
+api.MapGet("/projects/{slug}/client/{**filePath}", (string slug, string filePath, HttpContext httpContext, IProjectService projectService, IWebGLBuildService buildService) =>
+{
+    var project = projectService.GetBySlug(slug);
+    if (project == null || string.IsNullOrEmpty(project.ClientBuildPath))
+        return Results.NotFound();
+
+    var (isValid, fullPath) = buildService.ValidateAndGetBuildFilePath(project.ClientBuildPath, filePath);
+    if (!isValid || fullPath == null) return Results.NotFound();
+
+    var (contentType, contentEncoding) = buildService.GetContentTypeAndEncoding(fullPath);
+    if (contentEncoding != null)
+        httpContext.Response.Headers.ContentEncoding = contentEncoding;
+
+    httpContext.Response.Headers.CacheControl = "no-cache";
+    return Results.File(File.OpenRead(fullPath), contentType, enableRangeProcessing: true);
+}).WithName("ServeClientBuild");
+
+// GET /api/projects/{slug}/viewer-build/{**filePath} - serve WebGL viewer build files
+api.MapGet("/projects/{slug}/viewer-build/{**filePath}", (string slug, string filePath, HttpContext httpContext, IProjectService projectService, IWebGLBuildService buildService) =>
+{
+    var project = projectService.GetBySlug(slug);
+    if (project == null || string.IsNullOrEmpty(project.ReplayViewerBuildPath))
+        return Results.NotFound();
+
+    var (isValid, fullPath) = buildService.ValidateAndGetBuildFilePath(project.ReplayViewerBuildPath, filePath);
+    if (!isValid || fullPath == null) return Results.NotFound();
+
+    var (contentType, contentEncoding) = buildService.GetContentTypeAndEncoding(fullPath);
+    if (contentEncoding != null)
+        httpContext.Response.Headers.ContentEncoding = contentEncoding;
+
+    httpContext.Response.Headers.CacheControl = "no-cache";
+    return Results.File(File.OpenRead(fullPath), contentType, enableRangeProcessing: true);
+}).WithName("ServeViewerBuild");
 
 // HTML replay page: /{slug}/replays
 app.MapGet("/{slug}/replays", (string slug, IProjectService projectService) =>

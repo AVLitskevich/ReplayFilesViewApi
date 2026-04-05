@@ -31,4 +31,8 @@ public class ProjectSettings
     // Log Configuration
     public LogType LogType { get; set; } = LogType.Standard;
     public string LogPath { get; set; } = ""; // Internal container path or host path
+
+    // Local Build Paths (serve WebGL builds directly instead of via nginx)
+    public string ClientBuildPath { get; set; } = "";
+    public string ReplayViewerBuildPath { get; set; } = "";
 }
