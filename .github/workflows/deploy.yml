@@ -107,6 +107,7 @@ jobs:
             User=root
             WorkingDirectory=$TARGET_DIR/publish
             ExecStart=$TARGET_DIR/publish/ReplayFilesViewApi
+            EnvironmentFile=$TARGET_DIR/.env
             Environment=ASPNETCORE_ENVIRONMENT=Production
             Restart=always
             RestartSec=10

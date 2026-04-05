@@ -24,8 +24,14 @@ public class ProjectService : IProjectService
     public ProjectService(IWebHostEnvironment env, ILogger<ProjectService> logger)
     {
         _logger = logger;
-        // Store projects.json in the content root (persistent across deploys if mounted)
-        _projectsFilePath = Path.Combine(env.ContentRootPath, "projects.json");
+        
+        var rootPath = Environment.GetEnvironmentVariable("ROOT_PATH");
+        var basePath = !string.IsNullOrEmpty(rootPath) 
+            ? Path.Combine(rootPath, "replay-data")
+            : env.ContentRootPath;
+            
+        // Store projects.json in the data directory if ROOT_PATH specified, else in content root
+        _projectsFilePath = Path.Combine(basePath, "projects.json");
         LoadProjects();
     }
 

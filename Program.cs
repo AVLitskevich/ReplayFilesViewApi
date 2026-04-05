@@ -8,6 +8,14 @@ using ReplayFilesViewApi.Services;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
+// Load external appsettings.json if ROOT_PATH is provided
+var rootPath = Environment.GetEnvironmentVariable("ROOT_PATH");
+if (!string.IsNullOrEmpty(rootPath))
+{
+    var externalConfigPath = Path.Combine(rootPath, "replay-data", "appsettings.json");
+    builder.Configuration.AddJsonFile(externalConfigPath, optional: true, reloadOnChange: true);
+}
+
 // Configure project settings
 builder.Services.Configure<AdminSettings>(
     builder.Configuration.GetSection("AdminSettings"));
