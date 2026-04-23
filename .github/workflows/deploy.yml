@@ -95,27 +95,6 @@ jobs:
             
             chmod +x $TARGET_DIR/publish/ReplayFilesViewApi
             
-            # Setup Systemd Service
-            SERVICE_FILE=/etc/systemd/system/skillcade-replay-viewer.service
-            sudo bash -c "cat > $SERVICE_FILE" <<EOF
-            [Unit]
-            Description=Skillcade Replay Viewer API
-            After=network.target
+            # Setup Systemd Service (Manual management required)
+            echo "Systemd service file is managed manually."
 
-            [Service]
-            Type=simple
-            User=root
-            WorkingDirectory=$TARGET_DIR/publish
-            ExecStart=$TARGET_DIR/publish/ReplayFilesViewApi
-            EnvironmentFile=$TARGET_DIR/.env
-            Environment=ASPNETCORE_ENVIRONMENT=Production
-            Restart=always
-            RestartSec=10
-
-            [Install]
-            WantedBy=multi-user.target
-            EOF
-            
-            sudo systemctl daemon-reload
-            sudo systemctl enable skillcade-replay-viewer
-            sudo systemctl restart skillcade-replay-viewer
