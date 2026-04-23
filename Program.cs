@@ -73,6 +73,23 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 
 var app = builder.Build();
 
+// Log client build serving mode for each project
+{
+    var projectService = app.Services.GetRequiredService<IProjectService>();
+    var buildService = app.Services.GetRequiredService<IWebGLBuildService>();
+    var logger = app.Services.GetRequiredService<ILogger<Program>>();
+    foreach (var p in projectService.GetAll())
+    {
+        var clientMode = buildService.BuildPathExists(p.ClientBuildPath) ? $"local ({p.ClientBuildPath})"
+            : !string.IsNullOrEmpty(p.WebGLUrl) ? $"external ({p.WebGLUrl})"
+            : "not configured";
+        var viewerMode = buildService.BuildPathExists(p.ReplayViewerBuildPath) ? $"local ({p.ReplayViewerBuildPath})"
+            : !string.IsNullOrEmpty(p.ReplayViewerUrl) ? $"external ({p.ReplayViewerUrl})"
+            : "not configured";
+        logger.LogInformation("[{Slug}] Client build: {ClientMode} | Viewer build: {ViewerMode}", p.Slug, clientMode, viewerMode);
+    }
+}
+
 // Rate limiting
 app.UseRateLimiter();
 
@@ -100,16 +117,31 @@ api.MapGet("/projects", (IProjectService projectService, IWebGLBuildService buil
 }).WithName("GetProjects");
 
 // GET /api/projects/{slug} - get single project
-api.MapGet("/projects/{slug}", (string slug, IProjectService projectService, IWebGLBuildService buildService) =>
+api.MapGet("/projects/{slug}", (string slug, IProjectService projectService, IWebGLBuildService buildService, ILogger<Program> logger) =>
 {
     var project = projectService.GetBySlug(slug);
     if (project == null) return Results.NotFound();
 
+    var hasLocalClient = buildService.BuildPathExists(project.ClientBuildPath);
+    var hasLocalViewer = buildService.BuildPathExists(project.ReplayViewerBuildPath);
+
+    if (hasLocalClient)
+        logger.LogInformation("[{Slug}] Client build: serving locally from {Path}", slug, project.ClientBuildPath);
+    else if (!string.IsNullOrEmpty(project.WebGLUrl))
+        logger.LogInformation("[{Slug}] Client build: falling back to external URL {Url}", slug, project.WebGLUrl);
+    else
+        logger.LogWarning("[{Slug}] Client build: not configured (no local path or external URL)", slug);
+
+    if (hasLocalViewer)
+        logger.LogInformation("[{Slug}] Viewer build: serving locally from {Path}", slug, project.ReplayViewerBuildPath);
+    else if (!string.IsNullOrEmpty(project.ReplayViewerUrl))
+        logger.LogInformation("[{Slug}] Viewer build: falling back to external URL {Url}", slug, project.ReplayViewerUrl);
+
     return Results.Ok(new ProjectInfo(
         project.Slug, project.Name, project.Description, project.WebGLUrl,
         string.IsNullOrEmpty(project.ReplayViewerUrl) ? null : project.ReplayViewerUrl,
-        buildService.BuildPathExists(project.ClientBuildPath) ? $"/api/projects/{project.Slug}/client/index.html" : null,
-        buildService.BuildPathExists(project.ReplayViewerBuildPath) ? $"/api/projects/{project.Slug}/viewer-build/index.html" : null));
+        hasLocalClient ? $"/api/projects/{project.Slug}/client/index.html" : null,
+        hasLocalViewer ? $"/api/projects/{project.Slug}/viewer-build/index.html" : null));
 }).WithName("GetProject");
 
 // GET /api/projects/{slug}/replays - list project replays
