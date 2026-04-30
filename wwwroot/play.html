@@ -136,16 +136,6 @@
         const pathParts = window.location.pathname.split('/').filter(Boolean);
         const slug = pathParts[0];
 
-        async function getBuildVersion(url) {
-            try {
-                const resp = await fetch(url, { method: 'HEAD', cache: 'no-store' });
-                const version = resp.headers.get('Last-Modified') || resp.headers.get('ETag');
-                return '?v=' + encodeURIComponent(version || Date.now());
-            } catch {
-                return '?v=' + Date.now();
-            }
-        }
-
         async function loadGame() {
             if (!slug) {
                 showError('Could not determine project from URL');
@@ -172,10 +162,7 @@
                 }
 
                 const frame = document.getElementById('game-frame');
-                // Local builds have server-side Cache-Control: no-cache, no client-side bust needed
-                frame.src = project.clientBuildUrl
-                    ? gameUrl
-                    : gameUrl + await getBuildVersion(gameUrl);
+                frame.src = gameUrl + '?v=' + Date.now();
                 document.getElementById('loading').style.display = 'none';
                 frame.classList.add('visible');
             } catch (error) {
