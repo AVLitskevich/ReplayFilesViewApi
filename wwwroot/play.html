@@ -74,16 +74,14 @@
             letter-spacing: -0.01em;
         }
 
-        #game-frame,
-        #unity-canvas {
+        #game-frame {
             flex: 1;
             width: 100%;
             border: none;
             display: none;
         }
 
-        #game-frame.visible,
-        #unity-canvas.visible {
+        #game-frame.visible {
             display: block;
         }
 
@@ -133,7 +131,6 @@
         allow="fullscreen; pointer-lock"
         allowfullscreen>
     </iframe>
-    <canvas id="unity-canvas" tabindex="-1"></canvas>
 
     <script>
         const pathParts = window.location.pathname.split('/').filter(Boolean);
@@ -147,44 +144,6 @@
             } catch {
                 return '?v=' + Date.now();
             }
-        }
-
-        async function loadUnityGame(project) {
-            const gameUrl = project.clientBuildUrl || project.webGLUrl;
-            const gameDir = gameUrl.substring(0, gameUrl.lastIndexOf('/'));
-            const buildBase = gameDir + '/Build';
-            const loaderUrl = `${buildBase}/${project.unityProductName}.loader.js`;
-
-            console.log('[Unity] buildBase:', buildBase);
-            const v = await getBuildVersion(loaderUrl);
-            console.log('[Unity] version:', v);
-
-            await new Promise((resolve, reject) => {
-                const script = document.createElement('script');
-                script.src = loaderUrl + v;
-                script.onload = () => { console.log('[Unity] loader.js loaded'); resolve(); };
-                script.onerror = () => reject(new Error('Failed to load Unity loader: ' + script.src));
-                document.head.appendChild(script);
-            });
-
-            if (typeof createUnityInstance === 'undefined') {
-                throw new Error('createUnityInstance is not defined after loader loaded');
-            }
-
-            const canvas = document.getElementById('unity-canvas');
-            canvas.classList.add('visible');
-            document.getElementById('loading').style.display = 'none';
-
-            console.log('[Unity] calling createUnityInstance...');
-            await createUnityInstance(canvas, {
-                dataUrl: `${buildBase}/${project.unityProductName}.data.gz${v}`,
-                frameworkUrl: `${buildBase}/${project.unityProductName}.framework.js.gz${v}`,
-                codeUrl: `${buildBase}/${project.unityProductName}.wasm.gz${v}`,
-                streamingAssetsUrl: gameDir + '/StreamingAssets',
-                print: (msg) => console.log(msg),
-                printErr: (msg) => console.error(msg),
-            });
-            console.log('[Unity] createUnityInstance resolved');
         }
 
         async function loadGame() {
@@ -212,16 +171,23 @@
                     return;
                 }
 
-                console.log('[Game] project:', project.slug, '| unityProductName:', project.unityProductName);
-
-                if (project.unityProductName) {
-                    await loadUnityGame(project);
-                } else {
-                    const frame = document.getElementById('game-frame');
-                    frame.src = gameUrl + await getBuildVersion(gameUrl);
-                    document.getElementById('loading').style.display = 'none';
-                    frame.classList.add('visible');
+                if ('serviceWorker' in navigator) {
+                    try {
+                        const [registrations, cacheNames] = await Promise.all([
+                            navigator.serviceWorker.getRegistrations(),
+                            caches.keys(),
+                        ]);
+                        await Promise.all([
+                            ...registrations.map(r => r.unregister()),
+                            ...cacheNames.map(n => caches.delete(n)),
+                        ]);
+                    } catch { /* ignore */ }
                 }
+
+                const frame = document.getElementById('game-frame');
+                frame.src = project.unityProductName ? gameUrl : gameUrl + await getBuildVersion(gameUrl);
+                document.getElementById('loading').style.display = 'none';
+                frame.classList.add('visible');
             } catch (error) {
                 showError(error.message);
                 console.error('Error loading game:', error);
@@ -234,6 +200,7 @@
             document.getElementById('error').style.display = 'flex';
         }
 
+        console.log('Loading game with slug:', slug);
         document.addEventListener('DOMContentLoaded', loadGame);
     </script>
     <script src="/nav.js"></script>
