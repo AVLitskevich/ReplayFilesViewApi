@@ -35,4 +35,8 @@ public class ProjectSettings
     // Local Build Paths (serve WebGL builds directly instead of via nginx)
     public string ClientBuildPath { get; set; } = "";
     public string ReplayViewerBuildPath { get; set; } = "";
+
+    // If set, the game is a Unity WebGL build and will be loaded directly via Unity loader API
+    // Value is the Unity product name used in build file names (e.g. "Game-PixelDash-Web")
+    public string? UnityProductName { get; set; }
 }

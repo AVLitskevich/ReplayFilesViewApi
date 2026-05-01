@@ -111,7 +111,8 @@ api.MapGet("/projects", (IProjectService projectService, IWebGLBuildService buil
             p.Slug, p.Name, p.Description, p.WebGLUrl,
             string.IsNullOrEmpty(p.ReplayViewerUrl) ? null : p.ReplayViewerUrl,
             buildService.BuildPathExists(p.ClientBuildPath) ? $"/api/projects/{p.Slug}/client/index.html" : null,
-            buildService.BuildPathExists(p.ReplayViewerBuildPath) ? $"/api/projects/{p.Slug}/viewer-build/index.html" : null))
+            buildService.BuildPathExists(p.ReplayViewerBuildPath) ? $"/api/projects/{p.Slug}/viewer-build/index.html" : null,
+            string.IsNullOrEmpty(p.UnityProductName) ? null : p.UnityProductName))
         .ToList();
     return Results.Ok(new ProjectListResponse(projects));
 }).WithName("GetProjects");
@@ -141,7 +142,8 @@ api.MapGet("/projects/{slug}", (string slug, IProjectService projectService, IWe
         project.Slug, project.Name, project.Description, project.WebGLUrl,
         string.IsNullOrEmpty(project.ReplayViewerUrl) ? null : project.ReplayViewerUrl,
         hasLocalClient ? $"/api/projects/{project.Slug}/client/index.html" : null,
-        hasLocalViewer ? $"/api/projects/{project.Slug}/viewer-build/index.html" : null));
+        hasLocalViewer ? $"/api/projects/{project.Slug}/viewer-build/index.html" : null,
+        string.IsNullOrEmpty(project.UnityProductName) ? null : project.UnityProductName));
 }).WithName("GetProject");
 
 // GET /api/projects/{slug}/replays - list project replays

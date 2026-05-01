@@ -7,7 +7,8 @@ public record ProjectInfo(
     string WebGLUrl,
     string? ReplayViewerUrl,
     string? ClientBuildUrl,
-    string? ViewerBuildUrl
+    string? ViewerBuildUrl,
+    string? UnityProductName
 );
 
 public record ProjectListResponse(

@@ -74,14 +74,16 @@
             letter-spacing: -0.01em;
         }
 
-        #game-frame {
+        #game-frame,
+        #unity-canvas {
             flex: 1;
             width: 100%;
             border: none;
             display: none;
         }
 
-        #game-frame.visible {
+        #game-frame.visible,
+        #unity-canvas.visible {
             display: block;
         }
 
@@ -131,10 +133,49 @@
         allow="fullscreen; pointer-lock"
         allowfullscreen>
     </iframe>
+    <canvas id="unity-canvas" tabindex="-1"></canvas>
 
     <script>
         const pathParts = window.location.pathname.split('/').filter(Boolean);
         const slug = pathParts[0];
+
+        async function getBuildVersion(url) {
+            try {
+                const resp = await fetch(url, { method: 'HEAD', cache: 'no-store' });
+                const version = resp.headers.get('Last-Modified') || resp.headers.get('ETag');
+                return '?v=' + encodeURIComponent(version || Date.now());
+            } catch {
+                return '?v=' + Date.now();
+            }
+        }
+
+        async function loadUnityGame(project) {
+            const gameUrl = project.clientBuildUrl || project.webGLUrl;
+            const gameDir = gameUrl.substring(0, gameUrl.lastIndexOf('/'));
+            const buildBase = gameDir + '/Build';
+            const loaderUrl = `${buildBase}/${project.unityProductName}.loader.js`;
+
+            const v = await getBuildVersion(loaderUrl);
+
+            await new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = loaderUrl + v;
+                script.onload = resolve;
+                script.onerror = () => reject(new Error('Failed to load Unity loader'));
+                document.head.appendChild(script);
+            });
+
+            const canvas = document.getElementById('unity-canvas');
+            canvas.classList.add('visible');
+            document.getElementById('loading').style.display = 'none';
+
+            await createUnityInstance(canvas, {
+                dataUrl: `${buildBase}/${project.unityProductName}.data.gz${v}`,
+                frameworkUrl: `${buildBase}/${project.unityProductName}.framework.js.gz${v}`,
+                codeUrl: `${buildBase}/${project.unityProductName}.wasm.gz${v}`,
+                streamingAssetsUrl: gameDir + '/StreamingAssets',
+            });
+        }
 
         async function loadGame() {
             if (!slug) {
@@ -161,10 +202,14 @@
                     return;
                 }
 
-                const frame = document.getElementById('game-frame');
-                frame.src = gameUrl + '?v=' + Date.now();
-                document.getElementById('loading').style.display = 'none';
-                frame.classList.add('visible');
+                if (project.unityProductName) {
+                    await loadUnityGame(project);
+                } else {
+                    const frame = document.getElementById('game-frame');
+                    frame.src = gameUrl + await getBuildVersion(gameUrl);
+                    document.getElementById('loading').style.display = 'none';
+                    frame.classList.add('visible');
+                }
             } catch (error) {
                 showError(error.message);
                 console.error('Error loading game:', error);
@@ -173,9 +218,8 @@
 
         function showError(message) {
             document.getElementById('loading').style.display = 'none';
-            const errorDiv = document.getElementById('error');
             document.getElementById('error-message').textContent = message;
-            errorDiv.style.display = 'flex';
+            document.getElementById('error').style.display = 'flex';
         }
 
         document.addEventListener('DOMContentLoaded', loadGame);
