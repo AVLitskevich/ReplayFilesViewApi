@@ -174,6 +174,8 @@
                 frameworkUrl: `${buildBase}/${project.unityProductName}.framework.js.gz${v}`,
                 codeUrl: `${buildBase}/${project.unityProductName}.wasm.gz${v}`,
                 streamingAssetsUrl: gameDir + '/StreamingAssets',
+                print: (msg) => console.log(msg),
+                printErr: (msg) => console.error(msg),
             });
         }
 
