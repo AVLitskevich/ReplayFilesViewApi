@@ -206,35 +206,38 @@ api.MapGet("/projects/{slug}/viewer-build/{**filePath}", (string slug, string fi
 }).WithName("ServeViewerBuild");
 
 // HTML replay page: /{slug}/replays
-app.MapGet("/{slug}/replays", (string slug, IProjectService projectService) =>
+app.MapGet("/{slug}/replays", (string slug, IProjectService projectService, HttpContext httpContext) =>
 {
     var project = projectService.GetBySlug(slug);
     if (project == null) return Results.NotFound();
 
+    httpContext.Response.Headers.CacheControl = "no-cache";
     return Results.File("replays.html", "text/html");
 }).WithName("ProjectReplaysPage");
 
 // HTML play page: /{slug}/play
-app.MapGet("/{slug}/play", (string slug, IProjectService projectService) =>
+app.MapGet("/{slug}/play", (string slug, IProjectService projectService, HttpContext httpContext) =>
 {
     var project = projectService.GetBySlug(slug);
     if (project == null) return Results.NotFound();
 
+    httpContext.Response.Headers.CacheControl = "no-cache";
     return Results.File("play.html", "text/html");
 }).WithName("ProjectPlayPage");
 
 // HTML viewer page: /{slug}/viewer
-app.MapGet("/{slug}/viewer", (string slug, IProjectService projectService) =>
+app.MapGet("/{slug}/viewer", (string slug, IProjectService projectService, HttpContext httpContext) =>
 {
     var project = projectService.GetBySlug(slug);
     if (project == null) return Results.NotFound();
 
+    httpContext.Response.Headers.CacheControl = "no-cache";
     return Results.File("viewer.html", "text/html");
 }).WithName("ProjectViewerPage");
 
 // Cleaner URLs for Login and Admin
-app.MapGet("/login", () => Results.File("login.html", "text/html"));
-app.MapGet("/admin", () => Results.File("admin.html", "text/html"));
+app.MapGet("/login", (HttpContext httpContext) => { httpContext.Response.Headers.CacheControl = "no-cache"; return Results.File("login.html", "text/html"); });
+app.MapGet("/admin", (HttpContext httpContext) => { httpContext.Response.Headers.CacheControl = "no-cache"; return Results.File("admin.html", "text/html"); });
 
 // Admin API endpoints
 var adminApi = app.MapGroup("/api/admin").RequireAuthorization();
