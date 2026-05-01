@@ -212,6 +212,8 @@
                     return;
                 }
 
+                console.log('[Game] project:', project.slug, '| unityProductName:', project.unityProductName);
+
                 if (project.unityProductName) {
                     await loadUnityGame(project);
                 } else {
