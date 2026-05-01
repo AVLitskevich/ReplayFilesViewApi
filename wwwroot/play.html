@@ -155,20 +155,27 @@
             const buildBase = gameDir + '/Build';
             const loaderUrl = `${buildBase}/${project.unityProductName}.loader.js`;
 
+            console.log('[Unity] buildBase:', buildBase);
             const v = await getBuildVersion(loaderUrl);
+            console.log('[Unity] version:', v);
 
             await new Promise((resolve, reject) => {
                 const script = document.createElement('script');
                 script.src = loaderUrl + v;
-                script.onload = resolve;
-                script.onerror = () => reject(new Error('Failed to load Unity loader'));
+                script.onload = () => { console.log('[Unity] loader.js loaded'); resolve(); };
+                script.onerror = () => reject(new Error('Failed to load Unity loader: ' + script.src));
                 document.head.appendChild(script);
             });
+
+            if (typeof createUnityInstance === 'undefined') {
+                throw new Error('createUnityInstance is not defined after loader loaded');
+            }
 
             const canvas = document.getElementById('unity-canvas');
             canvas.classList.add('visible');
             document.getElementById('loading').style.display = 'none';
 
+            console.log('[Unity] calling createUnityInstance...');
             await createUnityInstance(canvas, {
                 dataUrl: `${buildBase}/${project.unityProductName}.data.gz${v}`,
                 frameworkUrl: `${buildBase}/${project.unityProductName}.framework.js.gz${v}`,
@@ -177,6 +184,7 @@
                 print: (msg) => console.log(msg),
                 printErr: (msg) => console.error(msg),
             });
+            console.log('[Unity] createUnityInstance resolved');
         }
 
         async function loadGame() {
