@@ -326,7 +326,10 @@ adminApi.MapGet("/projects/{slug}/logs", async (string slug, IProjectService pro
     }
 
     httpContext.Response.ContentType = "text/event-stream";
-    httpContext.Response.Headers.CacheControl = "no-cache";
+    httpContext.Response.Headers.CacheControl = "no-cache, no-store";
+    httpContext.Response.Headers.Pragma = "no-cache";
+    httpContext.Response.Headers.Expires = "0";
+    httpContext.Response.Headers["X-Accel-Buffering"] = "no";
     httpContext.Response.Headers.Connection = "keep-alive";
 
     await foreach (var line in systemService.StreamLogs(project, ct))

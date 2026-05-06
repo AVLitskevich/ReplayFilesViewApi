@@ -414,7 +414,7 @@
         const content = document.getElementById('logContent');
         content.innerHTML = '<div class="flex gap-4 font-mono text-sm"><span class="text-slate-500">[' + new Date().toLocaleTimeString() + ']</span><span class="text-tertiary">SYSTEM</span><span class="text-tertiary/60">Establishing connection to datastream...</span></div>';
 
-        logEventSource = new EventSource(`/api/admin/projects/${slug}/logs`);
+        logEventSource = new EventSource(`/api/admin/projects/${slug}/logs?t=${Date.now()}`);
         logEventSource.onmessage = (e) => {
             const wrapper = document.createElement('div');
             wrapper.className = 'flex gap-4 font-mono text-sm';
