@@ -26,6 +26,7 @@ builder.Services.AddSingleton<IReplayFileService, ReplayFileService>();
 builder.Services.AddSingleton<IAuthService, AuthService>();
 builder.Services.AddSingleton<ISystemService, SystemService>();
 builder.Services.AddSingleton<IWebGLBuildService, WebGLBuildService>();
+builder.Services.AddSingleton<IConfigValidationService, ConfigValidationService>();
 
 // Authentication
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -299,6 +300,16 @@ adminApi.MapPut("/projects/{slug}", (string slug, ProjectSettings project, IProj
     }
 });
 
+// POST /api/admin/projects/validate - validate config (current form values)
+adminApi.MapPost("/projects/validate", async (
+    ProjectSettings project, HttpContext httpContext,
+    IConfigValidationService validationService, CancellationToken ct) =>
+{
+    var baseUrl = $"{httpContext.Request.Scheme}://{httpContext.Request.Host}";
+    var result = await validationService.ValidateAsync(project, baseUrl, ct);
+    return Results.Ok(result);
+});
+
 // DELETE /api/admin/projects/{slug} - delete project
 adminApi.MapDelete("/projects/{slug}", (string slug, IProjectService projectService) =>
 {
@@ -352,6 +363,9 @@ public record LoginRequest(string Username, string Password);
 [JsonSerializable(typeof(ProjectSettings))]
 [JsonSerializable(typeof(List<ProjectSettings>))]
 [JsonSerializable(typeof(LoginRequest))]
+[JsonSerializable(typeof(ConfigValidationResponse))]
+[JsonSerializable(typeof(FieldValidation))]
+[JsonSerializable(typeof(List<FieldValidation>))]
 internal partial class AppJsonSerializerContext : JsonSerializerContext
 {
 }
