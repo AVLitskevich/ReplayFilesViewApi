@@ -12,10 +12,12 @@
     style.textContent = `
         .site-nav {
             position: fixed;
-            top: 2rem;
+            top: 0;
             right: 2.5rem;
+            height: 64px;
             display: flex;
-            gap: 1rem;
+            align-items: center;
+            gap: 0.75rem;
             z-index: 1000;
             font-family: 'Space Grotesk', sans-serif;
         }
@@ -27,9 +29,9 @@
             backdrop-filter: blur(8px);
             border: 1px solid rgba(68, 72, 79, 0.3);
             color: #f1f3fc;
-            padding: 0.6rem 1.25rem;
+            padding: 0.4rem 0.9rem;
             border-radius: 0.5rem;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.1em;
@@ -63,8 +65,9 @@
         
         @media (max-width: 768px) {
             .site-nav {
-                top: 1rem;
+                top: 0;
                 right: 1rem;
+                height: 56px;
             }
         }
     `;
